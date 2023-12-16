@@ -2,8 +2,9 @@
 #include <sndfile.h>
 #include <string>
 #include "sndfile.h"
-#include "status_codes.hpp"
 #include <iostream>
+#include "status_codes.hpp"
+
 
 template <typename T = float, size_t frame_size = 1024>
 class vocoder {
@@ -17,8 +18,12 @@ class vocoder {
             AUTO_TUNE
         };
 
-        vocoder() {
-            vocoder_init("samples/speech.wav");
+        vocoder(effect sel_effect, std::string input_fname, std::string outp_fname) 
+                :  user_effect(sel_effect)
+                ,  input_fn(input_fname)
+                ,  outp_fn(outp_fname)
+        {
+            vocoder_init(input_fname.c_str());
         }
 
         /* Open input file for read, populate input buffer, store file format information */
@@ -30,19 +35,18 @@ class vocoder {
             }
             ret_status = read_samples(input_buff + PAST);
             ret_status = read_samples(input_buff + PRESENT);
-            return ret_status;
+            return ret_status == status::FILE_READ_SUCCESS ? status::SUCCESS : status::ERROR;
         }
 
         // Default read function if datatype not supported.
         template<typename dummy_type = T>
         status read_samples(dtype *buffer) {
-            std::cout << "Can't read samples as DT\n";
+            std::cout << "Attempting to process samples with an unsupported datatype\n";
             return status::FILE_READ_FAIL;
         }
 
         // Read float samples to input buffer.
         template<> status read_samples<float>(dtype *buffer) {
-            std::cout << "Reading samples as floats\n";
             sf_count_t samples_read = sf_read_float(input_fh, input_buff, frame_size);
             if (samples_read != frame_size) {
                 return status::FILE_READ_FAIL;
@@ -52,7 +56,6 @@ class vocoder {
 
         // Read double samples to input buffer.
         template<> status read_samples<double>(dtype *buffer) {
-            std::cout << "Reading samples as doubles\n";
             sf_count_t samples_read = sf_read_double(input_fh, input_buff, frame_size);
             if (samples_read != frame_size) {
                 return status::FILE_READ_FAIL;
@@ -69,6 +72,9 @@ class vocoder {
         SF_INFO file_data;
         SNDFILE *input_fh;
         SNDFILE *output_fh;
+        std::string input_fn;
+        std::string outp_fn;
+        effect user_effect;
         // Buffers
         const int PAST = 0;
         const int PRESENT = frame_size;

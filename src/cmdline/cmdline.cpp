@@ -1,20 +1,21 @@
 #include "cmdline.hpp"
+#include "status_codes.hpp"
 #include <cstring>
 #include <iostream>
 #include <string>
 #include <vector>
 #include <string_view>
 
-int util::parse_args(const int argc, char *argv[]) {
+util::status_codes util::parse_args(const int argc, char *argv[]) {
     std::string inputf, outpf, effect, mod_factor;
     if (argc == 1) {
         std::cout << "Please specify an input .wav file as first argument.\n";
-        return -1;
+        return status_codes::ERROR;
     }
     const std::vector<std::string_view> cmdl_args(argv + 1, argv + argc);
     if (cmdl_args[0].find(".wav") == std::string::npos) {
         std::cout << "Please specify an input .wav file as first argument.\n";
-        return -1;
+        return status_codes::ERROR;
     }
     else {
         inputf = cmdl_args[0];
@@ -37,7 +38,7 @@ int util::parse_args(const int argc, char *argv[]) {
 
     printf("Input filename: %s, Output filename: %s, Effect: %s, Mod Factor: %s\n",
             inputf.c_str(), outpf.c_str(), effect.c_str(), mod_factor.c_str());
-    return 0;
+    return status_codes::SUCCESS;
 }
 
 int util::effect_as_int(const std::string &effect) {

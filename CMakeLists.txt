@@ -11,6 +11,7 @@ add_executable(effects_app src/main.cpp)
 
 # Cmdline
 add_library(cmdline STATIC src/cmdline/cmdline.hpp src/cmdline/cmdline.cpp)
+target_include_directories(cmdline PUBLIC "src/util")
 
 # Libsndfile
 find_package(PkgConfig REQUIRED)
