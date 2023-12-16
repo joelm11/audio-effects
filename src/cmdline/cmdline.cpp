@@ -5,7 +5,7 @@
 #include <vector>
 #include <string_view>
 
-int util::parse_args(int argc, char *argv[]) {
+int util::parse_args(const int argc, char *argv[]) {
     std::string inputf, outpf, effect, mod_factor;
     if (argc == 1) {
         std::cout << "Please specify an input .wav file as first argument.\n";
@@ -38,4 +38,22 @@ int util::parse_args(int argc, char *argv[]) {
     printf("Input filename: %s, Output filename: %s, Effect: %s, Mod Factor: %s\n",
             inputf.c_str(), outpf.c_str(), effect.c_str(), mod_factor.c_str());
     return 0;
+}
+
+int util::effect_as_int(const std::string &effect) {
+    if (effect == "robot") {
+        return 0;
+    }
+    else if (effect == "tstretch") {
+        return 1;
+    }
+    else if (effect == "pitch") {
+        return 2;
+    }
+    else if (effect == "autotune") {
+        return 3;
+    }
+    else {
+        return -1;
+    }
 }
