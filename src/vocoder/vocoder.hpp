@@ -21,11 +21,10 @@ class vocoder {
         vocoder (const voc_args &init_args, int frame_size);
 
         /* Open input file for read, populate input buffer, store file format information */
-        // status vocoder_init(const std::string &input_filename);
+        status vocoder_init();
 
 
     private:
-        // Private Members //
         SF_INFO file_data;
         SNDFILE *input_fh;
         SNDFILE *output_fh;

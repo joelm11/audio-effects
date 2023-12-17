@@ -17,6 +17,11 @@ int main(int argc, char *argv[]) {
     }
     
     vocoder pvc(vargs);
+    
+    if (pvc.vocoder_init() != status::SUCCESS) {
+        std::cout << "Failed to initialize phase vocoder\n";
+        return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
 }
