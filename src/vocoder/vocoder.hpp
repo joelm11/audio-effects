@@ -88,7 +88,7 @@ class vocoder {
         SNDFILE *output_fh;
         string input_fn;
         string outp_fn;
-        effect user_effect;
+        voc_effect user_effect;
         pair user_mod_factor;
         // Buffers
         const int PAST = 0;

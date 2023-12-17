@@ -7,7 +7,7 @@
 #include <vector>
 #include <string_view>
 
-util::status_codes util::parse_args(const int argc, char *argv[], const voc_args &vargs) {
+util::status_codes util::parse_args(const int argc, char *argv[], voc_args &vargs) {
     std::string inputf, outpf, effect, mod_factor;
     if (argc == 1) {
         std::cout << "Please specify an input .wav file as first argument.\n";
@@ -19,43 +19,47 @@ util::status_codes util::parse_args(const int argc, char *argv[], const voc_args
         return status_codes::ERROR;
     }
     else {
-        inputf = cmdl_args[0];
+        vargs.input_filename = cmdl_args[0];
     }
     // Set input and output file name. Select chosen effect and modification factor.
     for (int i = 0; i < argc; ++i) {
         if (std::strcmp(argv[i], "-e") == 0) {
-            effect = argv[i + 1];
+            vargs.sel_effect = effect_as_enum(argv[i + 1]);
         }
         if (std::strcmp(argv[i], "-o") == 0) {
-            outpf = argv[i + 1];
+            vargs.output_filename = argv[i + 1];
         }
         if (std::strcmp(argv[i], "-mf") == 0) {
-            mod_factor = argv[i + 1];
+            // mod_factor = argv[i + 1];
+            vargs.mod_factor = std::pair<int, int> (1, 1);
         }
     }
-    if (outpf == "") {
-        outpf = "out_" + inputf;
+    if (vargs.output_filename == "") {
+        auto pos = vargs.input_filename.find(".");
+        vargs.output_filename = vargs.input_filename;
+        vargs.output_filename = vargs.output_filename.insert(pos, "_out");
     }
 
-    printf("Input filename: %s, Output filename: %s, Effect: %s, Mod Factor: %s\n",
-            inputf.c_str(), outpf.c_str(), effect.c_str(), mod_factor.c_str());
+    printf("Input filename: %s\nOutput filename: %s\nEffect: %d\nMod Factor: %d/%d\n",
+            vargs.input_filename.c_str(), vargs.output_filename.c_str(), vargs.sel_effect, 
+            vargs.mod_factor.first, vargs.mod_factor.second);
     return status_codes::SUCCESS;
 }
 
-int util::effect_as_int(const std::string &effect) {
+voc_effect util::effect_as_enum(const std::string &effect) {
     if (effect == "robot") {
-        return 0;
+        return voc_effect::ROBOT;
     }
     else if (effect == "tstretch") {
-        return 1;
+        return voc_effect::TIME_STRETCH;
     }
     else if (effect == "pitch") {
-        return 2;
+        return voc_effect::PITCH_SHIFT;
     }
     else if (effect == "autotune") {
-        return 3;
+        return voc_effect::AUTO_TUNE;
     }
     else {
-        return -1;
+        return voc_effect::NOT_IMPLEMENTED;
     }
 }
