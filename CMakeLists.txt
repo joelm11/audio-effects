@@ -18,5 +18,10 @@ find_package(PkgConfig REQUIRED)
 list(APPEND CMAKE_MODULE_PATH "/usr/local/Cellar/")
 pkg_check_modules(SNDFILE REQUIRED IMPORTED_TARGET sndfile)
 
-target_link_libraries(effects_app PUBLIC cmdline PkgConfig::SNDFILE)
-target_include_directories(effects_app PUBLIC ${SNDFILE_INCLUDE_DIRS} "src/util")
+# Vocoder
+add_library(vocoder STATIC src/vocoder/vocoder.hpp src/vocoder/vocoder.cpp)
+target_include_directories(vocoder PUBLIC "src/util" PUBLIC ${SNDFILE_INCLUDE_DIRS})
+target_link_libraries(vocoder PUBLIC PkgConfig::SNDFILE)
+
+target_link_libraries(effects_app PUBLIC cmdline vocoder)
+target_include_directories(effects_app PUBLIC "src/util")

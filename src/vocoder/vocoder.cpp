@@ -1,11 +1,7 @@
-#include "vocoder.hpp"
 #include <cstddef>
+#include "vocoder.hpp"
+#include "vocoder_types.hpp"
 
-template <typename T, size_t frame_size>
-vocoder<T, frame_size>::vocoder (voc_args init_args) {
-    input_fn        = init_args.input_filename;
-    outp_fn         = init_args.output_filename;
-    user_effect     = init_args.sel_effect;
-    user_mod_factor = init_args.mod_factor;
-}
+vocoder::vocoder (const voc_args &init_args) : user_args(init_args) { }
 
+vocoder::vocoder (const voc_args &init_args, int frame_size) : user_args(init_args), frame_size(frame_size) { }
