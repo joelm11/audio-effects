@@ -25,6 +25,15 @@ class vocoder {
         /* Open input file for read, populate input buffer, store file format information */
         status vocoder_init();
 
+        /* Phase vocoder analysis stage */
+        status analysis();
+
+        /* Phase vocoder modification stage */
+        status modify_phase();
+
+        /* Phase vocoder resynthesis phase */
+        status resynthesis();
+
         /* Read samples to input buffer */
         status read_samples(float *buffer, int buff_offset);
 
