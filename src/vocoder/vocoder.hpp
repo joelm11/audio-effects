@@ -1,6 +1,7 @@
 #pragma once
 #include <cstddef>
 #include <sndfile.h>
+#include <fftw3.h>
 #include <string>
 #include "sndfile.h"
 #include <iostream>
