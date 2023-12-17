@@ -1,12 +1,13 @@
 #include "cmdline.hpp"
 #include "status_codes.hpp"
+#include "vocoder_types.hpp"
 #include <cstring>
 #include <iostream>
 #include <string>
 #include <vector>
 #include <string_view>
 
-util::status_codes util::parse_args(const int argc, char *argv[]) {
+util::status_codes util::parse_args(const int argc, char *argv[], const voc_args &vargs) {
     std::string inputf, outpf, effect, mod_factor;
     if (argc == 1) {
         std::cout << "Please specify an input .wav file as first argument.\n";
