@@ -11,6 +11,9 @@ class vocoder {
     public:
         using status = util::status_codes;
         using dtype  = T;
+        using string = std::string;
+        using pair   = std::pair<int, int>;
+        
         enum effect {
             ROBOT = 0,
             TIME_STRETCH,
@@ -18,7 +21,16 @@ class vocoder {
             AUTO_TUNE
         };
 
-        vocoder(effect sel_effect, std::string input_fname, std::string outp_fname) 
+        struct voc_args{
+            std::string input_filename;
+            std::string output_filename;
+            effect sel_effect;
+            pair mod_factor;
+        };
+
+        vocoder () = delete;
+
+        vocoder (effect sel_effect, std::string input_fname, std::string outp_fname) 
                 :  user_effect(sel_effect)
                 ,  input_fn(input_fname)
                 ,  outp_fn(outp_fname)
