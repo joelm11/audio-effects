@@ -20,9 +20,16 @@ class vocoder {
 
         vocoder (const voc_args &init_args, int frame_size);
 
+        ~vocoder (); 
+
         /* Open input file for read, populate input buffer, store file format information */
         status vocoder_init();
 
+        /* Read samples to input buffer */
+        status read_samples(float *buffer, int buff_offset);
+
+        /* Read samples to input buffer */
+        status read_samples(double *buffer, int buff_offset);
 
     private:
         SF_INFO file_data;
@@ -33,4 +40,6 @@ class vocoder {
         int frame_size = 1024;
         const int PAST = 0;
         const int PRESENT = frame_size;
+        dtype *inbuff;
+        dtype *outbuff;
 };
