@@ -1,8 +1,10 @@
 #pragma once
+#include <complex.h>
 #include <cstddef>
 #include <sndfile.h>
 #include <fftw3.h>
 #include <string>
+#include "fftw3.h"
 #include "sndfile.h"
 #include <iostream>
 #include "status_codes.hpp"
@@ -11,9 +13,10 @@
 class vocoder {
     public:
         using status = util::status_codes;
-        using dtype  = float;
+        using dtype  = double;
         using string = std::string;
         using pair   = std::pair<int, int>;
+        using complex = std::complex<dtype>;
 
         vocoder () = delete;
 
@@ -52,4 +55,13 @@ class vocoder {
         const int PRESENT = frame_size;
         dtype *inbuff;
         dtype *outbuff;
+        // Prior information needed for vocoder:
+        // 1. Previous frame's phase
+        // 2. Previous frame's modified phase
+        complex *prev_phase;
+        complex *prev_synth_phase;
+        // Buffers needed for FFTW
+        complex *fftw_input;
+        complex *fftw_output;
+        fftw_plan p;
 };
