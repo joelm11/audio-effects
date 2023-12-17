@@ -8,30 +8,43 @@
 #include <string_view>
 
 util::status_codes util::parse_args(const int argc, char *argv[], voc_args &vargs) {
-    std::string inputf, outpf, effect, mod_factor;
     if (argc == 1) {
         std::cout << "Please specify an input .wav file as first argument.\n";
-        return status_codes::ERROR;
+        return status_codes::BAD_CMDL_ARGS;
     }
     const std::vector<std::string_view> cmdl_args(argv + 1, argv + argc);
     if (cmdl_args[0].find(".wav") == std::string::npos) {
         std::cout << "Please specify an input .wav file as first argument.\n";
-        return status_codes::ERROR;
+        return status_codes::BAD_CMDL_ARGS;
     }
     else {
         vargs.input_filename = cmdl_args[0];
     }
     // Set input and output file name. Select chosen effect and modification factor.
-    for (int i = 0; i < argc; ++i) {
-        if (std::strcmp(argv[i], "-e") == 0) {
-            vargs.sel_effect = effect_as_enum(argv[i + 1]);
+    for (auto itr = cmdl_args.begin(); itr != cmdl_args.end(); ++itr) {
+        if (*itr == "-e") {
+            if (itr + 1 != cmdl_args.end()) {
+                vargs.sel_effect = effect_as_enum(*(++itr));
+            }
+            else {
+                return status_codes::BAD_CMDL_ARGS;
+            }
         }
-        if (std::strcmp(argv[i], "-o") == 0) {
-            vargs.output_filename = argv[i + 1];
+        if (*itr == "-o") {
+            if (itr + 1 != cmdl_args.end()) {
+                vargs.output_filename = *(++itr);
+            }
+            else {
+                return status_codes::BAD_CMDL_ARGS;
+            }
         }
-        if (std::strcmp(argv[i], "-mf") == 0) {
-            // mod_factor = argv[i + 1];
-            vargs.mod_factor = std::pair<int, int> (1, 1);
+        if (*itr == "-mf") {
+            if (itr + 1 != cmdl_args.end()) {
+                vargs.mod_factor = std::pair<int, int> (1, 1);
+            }
+            else {
+                return status_codes::BAD_CMDL_ARGS;
+            }
         }
     }
     if (vargs.output_filename == "") {
@@ -46,7 +59,7 @@ util::status_codes util::parse_args(const int argc, char *argv[], voc_args &varg
     return status_codes::SUCCESS;
 }
 
-voc_effect util::effect_as_enum(const std::string &effect) {
+voc_effect util::effect_as_enum(const std::string_view &effect) {
     if (effect == "robot") {
         return voc_effect::ROBOT;
     }

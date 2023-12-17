@@ -7,5 +7,5 @@
 namespace util {
     // Parse input argument for chosen effect and modification factor
     status_codes parse_args(const int argc, char *argv[], voc_args &args);
-    voc_effect effect_as_enum(const std::string &effect);
+    voc_effect effect_as_enum(const std::string_view &effect);
 }

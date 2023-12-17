@@ -10,8 +10,8 @@ int main(int argc, char *argv[]) {
     
     voc_args vargs;
 
-    if (util::parse_args(argc, argv, vargs) == status::ERROR) {
-        std::cout << "Failed to parse commandline arguments\n";
+    if (util::parse_args(argc, argv, vargs) != status::SUCCESS) {
+        std::cout << "Bad commandline arguments given\n";
         return static_cast<int>(status::ERROR);
     }
     
