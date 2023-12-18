@@ -6,6 +6,7 @@ namespace util {
         FILE_READ_SUCCESS,
         FILE_READ_FAIL,
         BAD_CMDL_ARGS,
+        BUFFER_FULL,
         BUFFER_NOT_FULL,
     };
 }

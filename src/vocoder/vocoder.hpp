@@ -16,6 +16,8 @@ class vocoder {
         using pair   = std::pair<int, int>;
         using complex = std::complex<dtype>;
 
+        voc_args user_args;
+
         vocoder () = delete;
 
         vocoder (const voc_args &init_args);
@@ -31,8 +33,11 @@ class vocoder {
         /* Apply window function to present buffer frame and compute mag and phase spectra */
         status analysis();
 
-        /* Phase vocoder modification stage */
-        status modify_phase();
+        /* Phase vocoder modification stage for robotization effect */
+        status modify_phase_r();
+        
+        /* Phase vocoder modification stage for all-other effects */
+        status modify_phase_t();
 
         /* Phase vocoder resynthesis phase */
         status resynthesis();
@@ -47,7 +52,6 @@ class vocoder {
         SF_INFO file_data;
         SNDFILE *input_fh;
         SNDFILE *output_fh;
-        voc_args user_args;
         // Buffers
         int frame_size = 1024;
         const int PAST = 0;
