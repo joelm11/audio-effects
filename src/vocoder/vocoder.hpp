@@ -1,12 +1,10 @@
 #pragma once
 #include <complex.h>
 #include <cstddef>
-#include <sndfile.h>
-#include <fftw3.h>
 #include <string>
-#include "fftw3.h"
-#include "sndfile.h"
 #include <iostream>
+#include <fftw3.h>
+#include <sndfile.h>
 #include "status_codes.hpp"
 #include "vocoder_types.hpp"
 
@@ -30,6 +28,7 @@ class vocoder {
         status vocoder_init();
 
         /* Phase vocoder analysis stage */
+        /* Apply window function to present buffer frame and compute mag and phase spectra */
         status analysis();
 
         /* Phase vocoder modification stage */
@@ -64,4 +63,8 @@ class vocoder {
         complex *fftw_input;
         complex *fftw_output;
         fftw_plan p;
+        // Windows?
+        dtype *hann_win;
+        // Misc.
+        int analysis_hop_size = frame_size / 4;
 };
