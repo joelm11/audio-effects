@@ -25,12 +25,13 @@ int main(int argc, char *argv[]) {
 
     // While full frames in input run vocoder algorithm.
     while (pvc.analysis() == status::BUFFER_FULL) {
-        if (pvc.user_args.sel_effect == ROBOT) {
-            pvc.modify_phase_r();
-        }
-        else {
-            pvc.modify_phase_t();
-        }
+        // if (pvc.user_args.sel_effect == ROBOT) {
+        //     pvc.modify_phase_r();
+        // }
+        // else {
+        //     pvc.modify_phase_t();
+        // }
+        pvc.resynthesis();
     }
 
     return EXIT_SUCCESS;

@@ -2,6 +2,7 @@
 #include <cmath>
 #include <complex>
 #include <cstddef>
+#include <cstdlib>
 #include <cstring>
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -21,13 +22,17 @@ vocoder::~vocoder() {
     delete [] hann_win;
     delete [] prev_phase;
     delete [] prev_synth_phase;
-    fftw_destroy_plan(p);
+    sf_close(input_fh);
+    sf_close(output_fh);
+    fftw_destroy_plan(fft);
+    fftw_destroy_plan(ifft);
     fftw_free(fftw_input);
     fftw_free(fftw_output);
 }
 
 vocoder::status vocoder::vocoder_init() {
-    input_fh = sf_open(user_args.input_filename.c_str(), SFM_READ, &file_data);
+    input_fh  = sf_open(user_args.input_filename.c_str(), SFM_READ, &file_data);
+    output_fh = sf_open(user_args.output_filename.c_str(), SFM_WRITE, &file_data);
     if (input_fh == NULL) {
         return status::FILE_READ_FAIL;
     }
@@ -38,26 +43,31 @@ vocoder::status vocoder::vocoder_init() {
     
     fftw_input = (complex*) fftw_malloc(sizeof(fftw_complex) * frame_size);
     fftw_output = (complex*) fftw_malloc(sizeof(fftw_complex) * frame_size);
-    p = fftw_plan_dft_1d(frame_size, reinterpret_cast<fftw_complex*>(fftw_input),
+    fft = fftw_plan_dft_1d(frame_size, reinterpret_cast<fftw_complex*>(fftw_input),
                          reinterpret_cast<fftw_complex*>(fftw_output), FFTW_FORWARD, FFTW_MEASURE);
-    
+    ifft = fftw_plan_dft_1d(frame_size, reinterpret_cast<fftw_complex*>(fftw_input),
+                         reinterpret_cast<fftw_complex*>(fftw_output), FFTW_BACKWARD, FFTW_MEASURE);
+
     hann_win = new dtype[frame_size];
     compute_hann_win(hann_win, frame_size, analysis_hop_size);
     
-    status ret_status = read_samples(inbuff, PAST);
-    // ret_status = read_samples(inbuff, PRESENT);
-    return ret_status;
+    read_samples(inbuff, 0, frame_size);
+
+    return status::SUCCESS;
 }
 
 vocoder::status vocoder::analysis() {
-    status ret_status = read_samples(inbuff, PRESENT);
+    std::copy_n(inbuff + analysis_hop_size, frame_size - analysis_hop_size, inbuff);
+    status ret_status = read_samples(inbuff, frame_size - analysis_hop_size, analysis_hop_size);
     for (int i = 0; i < frame_size; ++i) {
         inbuff[i] *= hann_win[i];
     }
-    std::copy_n(inbuff + PRESENT, frame_size, fftw_input);
-    fftw_execute(p);
+    std::copy_n(inbuff, frame_size, fftw_input);
+    fftw_execute(fft);
     for (int i = 0; i < frame_size; ++i) {
-        fftw_input[i] = std::polar(fftw_input[i].real(), fftw_input[i].imag());
+        // fftw_input[i] = std::polar(fftw_input[i].real(), fftw_input[i].imag());
+        fftw_input[i] = complex(abs(fftw_input[i]), arg(fftw_input[i]));
+        // std::cout << fftw_input[i].real() << ' ' << fftw_input[i].imag() << '\n';
     }
     return ret_status;
 }
@@ -93,6 +103,28 @@ vocoder::status vocoder::modify_phase_t() {
     return status::SUCCESS;
 }
 
+vocoder::status vocoder::resynthesis() {
+    for (int i = 0; i < frame_size; ++i) {
+        fftw_input[i].real(fftw_input[i].real() * cos(fftw_input[i].imag()));
+        fftw_input[i].imag(fftw_input[i].real() * sin(fftw_input[i].imag()));
+    }
+    fftw_execute(ifft);
+    for (int i = 0; i < frame_size; ++i) {
+        outbuff[i + outbuff_offset] = fftw_output[i].real();
+    }
+    outbuff_offset += synthesis_hop_size;
+    if (outbuff_offset >= frame_size) {
+        sf_write_double(output_fh, outbuff, frame_size);
+        // Copy data backwards in buffer
+        std::copy_n(outbuff + outbuff_offset, 2 * frame_size - outbuff_offset, outbuff);
+        outbuff_offset -= frame_size;
+    }
+    else {
+        outbuff_offset += synthesis_hop_size;
+    }
+    return status::SUCCESS;
+}
+
 vocoder::status vocoder::read_samples(float *buffer, int buff_offset) {
     sf_count_t samples_read = sf_read_float(input_fh, buffer + buff_offset, frame_size);
     if (samples_read < frame_size) {
@@ -101,9 +133,9 @@ vocoder::status vocoder::read_samples(float *buffer, int buff_offset) {
     return status::SUCCESS;
 }
 
-vocoder::status vocoder::read_samples(double *buffer, int buff_offset) {
-    sf_count_t samples_read = sf_read_double(input_fh, buffer + buff_offset, frame_size);
-    if (samples_read < frame_size) {
+vocoder::status vocoder::read_samples(double *buffer, int buff_offset, int num_samples) {
+    sf_count_t samples_read = sf_read_double(input_fh, buffer + buff_offset, num_samples);
+    if (samples_read < num_samples) {
         return status::BUFFER_NOT_FULL;
     }
     return status::BUFFER_FULL;

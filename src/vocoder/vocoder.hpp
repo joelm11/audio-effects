@@ -40,13 +40,14 @@ class vocoder {
         status modify_phase_t();
 
         /* Phase vocoder resynthesis phase */
+        /* Take the IFFT of the modified frame, overlap add to output buff */
         status resynthesis();
 
         /* Read samples to input buffer */
         status read_samples(float *buffer, int buff_offset);
 
         /* Read samples to input buffer */
-        status read_samples(double *buffer, int buff_offset);
+        status read_samples(double *buffer, int buff_offset, int num_samples);
 
     private:
         SF_INFO file_data;
@@ -56,6 +57,7 @@ class vocoder {
         int frame_size = 1024;
         const int PAST = 0;
         const int PRESENT = frame_size;
+        int outbuff_offset = 0;
         dtype *inbuff;
         dtype *outbuff;
         // Prior information needed for vocoder:
@@ -66,7 +68,7 @@ class vocoder {
         // Buffers needed for FFTW
         complex *fftw_input;
         complex *fftw_output;
-        fftw_plan p;
+        fftw_plan fft, ifft;
         // Windows?
         dtype *hann_win;
         // Misc.
