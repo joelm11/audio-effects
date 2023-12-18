@@ -45,8 +45,8 @@ vocoder::status vocoder::vocoder_init() {
     fftw_output = (complex*) fftw_malloc(sizeof(fftw_complex) * frame_size);
     fft = fftw_plan_dft_1d(frame_size, reinterpret_cast<fftw_complex*>(fftw_input),
                          reinterpret_cast<fftw_complex*>(fftw_output), FFTW_FORWARD, FFTW_MEASURE);
-    ifft = fftw_plan_dft_1d(frame_size, reinterpret_cast<fftw_complex*>(fftw_input),
-                         reinterpret_cast<fftw_complex*>(fftw_output), FFTW_BACKWARD, FFTW_MEASURE);
+    ifft = fftw_plan_dft_1d(frame_size, reinterpret_cast<fftw_complex*>(fftw_output),
+                         reinterpret_cast<fftw_complex*>(fftw_input), FFTW_BACKWARD, FFTW_MEASURE);
 
     hann_win = new dtype[frame_size];
     compute_hann_win(hann_win, frame_size, analysis_hop_size);
@@ -59,15 +59,14 @@ vocoder::status vocoder::vocoder_init() {
 vocoder::status vocoder::analysis() {
     std::copy_n(inbuff + analysis_hop_size, frame_size - analysis_hop_size, inbuff);
     status ret_status = read_samples(inbuff, frame_size - analysis_hop_size, analysis_hop_size);
-    for (int i = 0; i < frame_size; ++i) {
-        inbuff[i] *= hann_win[i];
-    }
     std::copy_n(inbuff, frame_size, fftw_input);
+    for (int i = 0; i < frame_size; ++i) {
+        fftw_input[i] *= hann_win[i];
+    }
     fftw_execute(fft);
     for (int i = 0; i < frame_size; ++i) {
-        // fftw_input[i] = std::polar(fftw_input[i].real(), fftw_input[i].imag());
-        fftw_input[i] = complex(abs(fftw_input[i]), arg(fftw_input[i]));
-        // std::cout << fftw_input[i].real() << ' ' << fftw_input[i].imag() << '\n';
+        fftw_output[i] = complex(abs(fftw_output[i]), arg(fftw_output[i]));
+        // std::cout << fftw_output[i].real() << ' ' << fftw_output[i].imag() << '\n';
     }
     return ret_status;
 }
@@ -104,23 +103,21 @@ vocoder::status vocoder::modify_phase_t() {
 }
 
 vocoder::status vocoder::resynthesis() {
+    std::cout << outbuff_offset << '\n';
     for (int i = 0; i < frame_size; ++i) {
-        fftw_input[i].real(fftw_input[i].real() * cos(fftw_input[i].imag()));
-        fftw_input[i].imag(fftw_input[i].real() * sin(fftw_input[i].imag()));
+        fftw_output[i].real(fftw_output[i].real() * cos(fftw_output[i].imag()));
+        fftw_output[i].imag(fftw_output[i].real() * sin(fftw_output[i].imag()));
     }
     fftw_execute(ifft);
     for (int i = 0; i < frame_size; ++i) {
-        outbuff[i + outbuff_offset] = fftw_output[i].real();
+        outbuff[i + outbuff_offset] = fftw_input[i].real() / frame_size;
     }
     outbuff_offset += synthesis_hop_size;
     if (outbuff_offset >= frame_size) {
         sf_write_double(output_fh, outbuff, frame_size);
         // Copy data backwards in buffer
-        std::copy_n(outbuff + outbuff_offset, 2 * frame_size - outbuff_offset, outbuff);
+        std::copy_n(outbuff + outbuff_offset, frame_size, outbuff); // DEBUG
         outbuff_offset -= frame_size;
-    }
-    else {
-        outbuff_offset += synthesis_hop_size;
     }
     return status::SUCCESS;
 }
