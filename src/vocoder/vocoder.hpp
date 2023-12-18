@@ -71,4 +71,5 @@ class vocoder {
         dtype *hann_win;
         // Misc.
         int analysis_hop_size = frame_size / 4;
+        int synthesis_hop_size = analysis_hop_size;
 };
