@@ -36,10 +36,10 @@ vocoder::status vocoder::vocoder_init() {
     if (input_fh == NULL) {
         return status::FILE_READ_FAIL;
     }
-    inbuff   = new dtype[frame_size * 2];
-    outbuff  = new dtype[frame_size * 2];
-    prev_phase = new complex[frame_size];
-    prev_synth_phase = new complex[frame_size];
+    inbuff   = new dtype[frame_size * 2]();
+    outbuff  = new dtype[frame_size * 2]();
+    prev_phase = new complex[frame_size]();
+    prev_synth_phase = new complex[frame_size]();
     
     fftw_input = (complex*) fftw_malloc(sizeof(fftw_complex) * frame_size);
     fftw_output = (complex*) fftw_malloc(sizeof(fftw_complex) * frame_size);
@@ -51,7 +51,10 @@ vocoder::status vocoder::vocoder_init() {
     hann_win = new dtype[frame_size];
     compute_hann_win(hann_win, frame_size, analysis_hop_size);
 
-    synthesis_hop_size = analysis_hop_size * user_args.mod_factor.first / user_args.mod_factor.second;
+    if (user_args.sel_effect != ROBOT) {
+        synthesis_hop_size = analysis_hop_size * user_args.mod_factor.first / user_args.mod_factor.second;
+        std::cout << "Synthesis Hopsize: " << synthesis_hop_size << '\n';
+    }
     
     read_samples(inbuff, 0, frame_size);
 
@@ -111,13 +114,18 @@ vocoder::status vocoder::resynthesis() {
     }
     fftw_execute(ifft);
     for (int i = 0; i < frame_size; ++i) {
-        outbuff[i + outbuff_offset] = fftw_input[i].real() / frame_size;
+        // outbuff[outbuff_offset + i] += fftw_input[i].real() / frame_size;
+        outbuff[outbuff_offset + i] += fftw_input[i].real() * hann_win[i] / frame_size;
     }
     outbuff_offset += synthesis_hop_size;
     if (outbuff_offset >= frame_size) {
         sf_write_double(output_fh, outbuff, frame_size);
         // Copy data backwards in buffer
-        std::copy(outbuff + outbuff_offset, outbuff + outbuff_offset + frame_size, outbuff);
+        std::copy(outbuff + outbuff_offset, outbuff + 2 * frame_size, outbuff);
+        // Empty old portion of buffer
+        for (int i = outbuff_offset; i < 2 * frame_size; ++i) {
+            outbuff[i] = 0;
+        } 
         outbuff_offset -= frame_size;
     }
     return status::SUCCESS;
