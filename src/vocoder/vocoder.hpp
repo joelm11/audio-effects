@@ -54,9 +54,8 @@ class vocoder {
         SNDFILE *input_fh;
         SNDFILE *output_fh;
         // Buffers
-        int frame_size = 1024;
-        const int PAST = 0;
-        const int PRESENT = frame_size;
+        const int frame_size = 1024;
+        const int outbuff_size = 3 * frame_size;
         int outbuff_offset = 0;
         dtype *inbuff;
         dtype *outbuff;

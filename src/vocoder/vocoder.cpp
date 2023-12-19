@@ -36,8 +36,8 @@ vocoder::status vocoder::vocoder_init() {
     if (input_fh == NULL) {
         return status::FILE_READ_FAIL;
     }
-    inbuff   = new dtype[frame_size * 2]();
-    outbuff  = new dtype[frame_size * 2]();
+    inbuff   = new dtype[frame_size]();
+    outbuff  = new dtype[outbuff_size]();
     prev_phase = new complex[frame_size]();
     prev_synth_phase = new complex[frame_size]();
     
@@ -121,9 +121,9 @@ vocoder::status vocoder::resynthesis() {
     if (outbuff_offset >= frame_size) {
         sf_write_double(output_fh, outbuff, frame_size);
         // Copy data backwards in buffer
-        std::copy(outbuff + outbuff_offset, outbuff + 2 * frame_size, outbuff);
+        std::copy(outbuff + outbuff_offset, outbuff + outbuff_size, outbuff);
         // Empty old portion of buffer
-        for (int i = outbuff_offset; i < 2 * frame_size; ++i) {
+        for (int i = outbuff_offset; i < outbuff_size; ++i) {
             outbuff[i] = 0;
         } 
         outbuff_offset -= frame_size;
