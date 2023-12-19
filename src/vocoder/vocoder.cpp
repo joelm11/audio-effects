@@ -106,7 +106,6 @@ vocoder::status vocoder::modify_phase_t() {
 vocoder::status vocoder::resynthesis() {
     for (int i = 0; i < frame_size; ++i) {
         fftw_output[i] = std::polar(fftw_output[i].real(), fftw_output[i].imag());
-        std::cout << fftw_output[i].real() << ' ' << fftw_output[i].imag() << '\n';
     }
     fftw_execute(ifft);
     for (int i = 0; i < frame_size; ++i) {
@@ -116,7 +115,7 @@ vocoder::status vocoder::resynthesis() {
     if (outbuff_offset >= frame_size) {
         sf_write_double(output_fh, outbuff, frame_size);
         // Copy data backwards in buffer
-        std::copy_n(outbuff + outbuff_offset, frame_size, outbuff); // DEBUG
+        std::copy(outbuff + outbuff_offset, outbuff + outbuff_offset + frame_size, outbuff);
         outbuff_offset -= frame_size;
     }
     return status::SUCCESS;
