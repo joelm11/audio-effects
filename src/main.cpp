@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
             pvc.modify_phase_r();
         }
         else {
-            // pvc.modify_phase_t();
+            pvc.modify_phase_t();
         }
         pvc.resynthesis();
     }

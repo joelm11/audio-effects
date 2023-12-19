@@ -50,6 +50,8 @@ vocoder::status vocoder::vocoder_init() {
 
     hann_win = new dtype[frame_size];
     compute_hann_win(hann_win, frame_size, analysis_hop_size);
+
+    synthesis_hop_size = analysis_hop_size * user_args.mod_factor.first / user_args.mod_factor.second;
     
     read_samples(inbuff, 0, frame_size);
 
