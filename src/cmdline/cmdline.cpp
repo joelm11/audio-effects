@@ -40,7 +40,11 @@ util::status_codes util::parse_args(const int argc, char *argv[], voc_args &varg
         }
         if (*itr == "-mf") {
             if (itr + 1 != cmdl_args.end()) {
-                vargs.mod_factor = std::pair<int, int> (1, 1);
+                std::string rational(*(++itr)), num, den;
+                num = rational.substr(0, rational.find("/"));
+                den = rational.substr(rational.find("/") + 1, std::string::npos);
+                vargs.mod_factor.first  = std::stoi(num);
+                vargs.mod_factor.second = std::stoi(den);
             }
             else {
                 return status_codes::BAD_CMDL_ARGS;
