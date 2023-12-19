@@ -74,7 +74,7 @@ vocoder::status vocoder::analysis() {
 
 vocoder::status vocoder::modify_phase_r() {
     for(int i = 0; i < frame_size; ++i) {
-        fftw_input[i].imag(0);
+        fftw_output[i].imag(0);
     }
     return status::SUCCESS;
 }
