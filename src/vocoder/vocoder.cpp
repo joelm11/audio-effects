@@ -57,16 +57,17 @@ vocoder::status vocoder::vocoder_init() {
 }
 
 vocoder::status vocoder::analysis() {
-    std::copy_n(inbuff + analysis_hop_size, frame_size - analysis_hop_size, inbuff);
+    // Left-shift input buffer to load 'analysis_hop_size' new samples
+    std::copy(inbuff + analysis_hop_size, inbuff + frame_size, inbuff);
     status ret_status = read_samples(inbuff, frame_size - analysis_hop_size, analysis_hop_size);
-    std::copy_n(inbuff, frame_size, fftw_input);
     for (int i = 0; i < frame_size; ++i) {
-        fftw_input[i] *= hann_win[i];
+        // inbuff[i] *= hann_win[i];
     }
+    // Copy windowed input buffer to fft input
+    std::copy_n(inbuff, frame_size, fftw_input);
     fftw_execute(fft);
     for (int i = 0; i < frame_size; ++i) {
         fftw_output[i] = complex(abs(fftw_output[i]), arg(fftw_output[i]));
-        // std::cout << fftw_output[i].real() << ' ' << fftw_output[i].imag() << '\n';
     }
     return ret_status;
 }
@@ -103,10 +104,9 @@ vocoder::status vocoder::modify_phase_t() {
 }
 
 vocoder::status vocoder::resynthesis() {
-    std::cout << outbuff_offset << '\n';
     for (int i = 0; i < frame_size; ++i) {
-        fftw_output[i].real(fftw_output[i].real() * cos(fftw_output[i].imag()));
-        fftw_output[i].imag(fftw_output[i].real() * sin(fftw_output[i].imag()));
+        fftw_output[i] = std::polar(fftw_output[i].real(), fftw_output[i].imag());
+        std::cout << fftw_output[i].real() << ' ' << fftw_output[i].imag() << '\n';
     }
     fftw_execute(ifft);
     for (int i = 0; i < frame_size; ++i) {
