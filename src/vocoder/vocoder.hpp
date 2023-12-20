@@ -69,7 +69,7 @@ class vocoder {
         complex *fftw_output;
         fftw_plan fft, ifft;
         // Windows?
-        dtype *hann_win;
+        dtype *window;
         // Misc.
         int analysis_hop_size = frame_size / 4;
         int synthesis_hop_size = analysis_hop_size;

@@ -19,7 +19,7 @@ vocoder::vocoder (const voc_args &init_args, int frame_size) : user_args(init_ar
 vocoder::~vocoder() {
     delete [] inbuff;
     delete [] outbuff;
-    delete [] hann_win;
+    delete [] window;
     delete [] prev_phase;
     delete [] prev_synth_phase;
     sf_close(input_fh);
@@ -48,8 +48,9 @@ vocoder::status vocoder::vocoder_init() {
     ifft = fftw_plan_dft_1d(frame_size, reinterpret_cast<fftw_complex*>(fftw_output),
                          reinterpret_cast<fftw_complex*>(fftw_input), FFTW_BACKWARD, FFTW_MEASURE);
 
-    hann_win = new dtype[frame_size];
-    compute_hann_win(hann_win, frame_size, analysis_hop_size);
+    window = new dtype[frame_size];
+    // compute_hann_win(hann_win, frame_size, analysis_hop_size);
+    compute_tri_win(window, frame_size);
 
     if (user_args.sel_effect != ROBOT) {
         synthesis_hop_size = analysis_hop_size * user_args.mod_factor.first / user_args.mod_factor.second;
@@ -121,7 +122,7 @@ vocoder::status vocoder::resynthesis() {
     }
     fftw_execute(ifft);
     for (int i = 0; i < frame_size; ++i) {
-        outbuff[outbuff_offset + i] += fftw_input[i].real() * hann_win[i] / frame_size;
+        outbuff[outbuff_offset + i] += fftw_input[i].real() * window[i] / frame_size;
     }
     outbuff_offset += synthesis_hop_size;
     if (outbuff_offset >= frame_size) {

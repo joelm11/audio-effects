@@ -16,3 +16,10 @@ void compute_hann_win(double *window_buffer, int win_size, int an_hop_size) {
         window_buffer[i] = std::pow(std::sin(M_PI * double (i) / win_size), 2);
     }
 }
+
+void compute_tri_win(double *window_buffer, int win_size) {
+    const double c = (double) win_size / 2;
+    for (int i = 0; i < win_size; ++i) {
+        window_buffer[i] = .75 - std::abs((i - c) / (c));
+    }
+}
