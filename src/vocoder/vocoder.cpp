@@ -67,6 +67,8 @@ vocoder::status vocoder::analysis() {
     status ret_status = read_samples(inbuff, frame_size - analysis_hop_size, analysis_hop_size);
     for (int i = 0; i < frame_size; ++i) {
         // inbuff[i] *= hann_win[i];
+        // This windowing seems to be detrimental to result. 
+        //Makes it super phasey sounding.
     }
     // Copy windowed input buffer to fft input
     std::copy_n(inbuff, frame_size, fftw_input);
@@ -89,12 +91,12 @@ vocoder::status vocoder::modify_phase_t() {
     double phase_inc[frame_size]; double inst_freqs[frame_size];
     double phase_prop[frame_size];
     for (int i = 0; i < frame_size; ++i) {
-        bin_freqs[i] = 2 * M_PI * i / frame_size;
+        bin_freqs[i] = 2 * M_PI * (double) i / frame_size;
         phase_adv[i] = bin_freqs[i] * analysis_hop_size;
     }
     for (int i = 0; i < frame_size; ++i) {
-        phase_inc[i] = fftw_input[i].imag() - prev_phase[i].imag() - phase_adv[i];
-        prev_phase[i] = fftw_input[i].imag();
+        phase_inc[i] = fftw_output[i].imag() - prev_phase[i].imag() - phase_adv[i];
+        prev_phase[i] = fftw_output[i].imag();
         phase_inc[i] = std::fmod(phase_inc[i] + M_PI, 2 * M_PI) - M_PI;
     }
     for (int i = 0; i < frame_size; ++i) {
@@ -102,6 +104,7 @@ vocoder::status vocoder::modify_phase_t() {
     }
     for (int i = 0; i < frame_size; ++i) {
         phase_prop[i] = prev_synth_phase[i].imag() + synthesis_hop_size * inst_freqs[i];
+        fftw_output[i].imag(phase_prop[i]);
         prev_synth_phase[i] = phase_prop[i];
     }
     // Write previous buffers for next computation
@@ -114,7 +117,6 @@ vocoder::status vocoder::resynthesis() {
     }
     fftw_execute(ifft);
     for (int i = 0; i < frame_size; ++i) {
-        // outbuff[outbuff_offset + i] += fftw_input[i].real() / frame_size;
         outbuff[outbuff_offset + i] += fftw_input[i].real() * hann_win[i] / frame_size;
     }
     outbuff_offset += synthesis_hop_size;
