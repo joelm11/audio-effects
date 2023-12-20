@@ -90,15 +90,19 @@ vocoder::status vocoder::modify_phase_t() {
     double bin_freqs[frame_size]; double phase_adv[frame_size];
     double phase_inc[frame_size]; double inst_freqs[frame_size];
     double phase_prop[frame_size];
+    // Constants
     for (int i = 0; i < frame_size; ++i) {
         bin_freqs[i] = 2 * M_PI * (double) i / frame_size;
         phase_adv[i] = bin_freqs[i] * analysis_hop_size;
     }
+    // Wrapped phase advance
     for (int i = 0; i < frame_size; ++i) {
         phase_inc[i] = fftw_output[i].imag() - prev_phase[i].imag() - phase_adv[i];
+        phase_inc[i] = phase_inc[i] - 2 * M_PI * std::floor((phase_inc[i] + M_PI) / 2 * M_PI);
+        // Record unmodified phase for next iteration
         prev_phase[i] = fftw_output[i].imag();
-        phase_inc[i] = std::fmod(phase_inc[i] + M_PI, 2 * M_PI) - M_PI;
     }
+    // Instantaneous frequency
     for (int i = 0; i < frame_size; ++i) {
         inst_freqs[i] = bin_freqs[i] + phase_inc[i] / analysis_hop_size;
     }
