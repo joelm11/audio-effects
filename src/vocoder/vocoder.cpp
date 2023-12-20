@@ -19,7 +19,8 @@ vocoder::vocoder (const voc_args &init_args, int frame_size) : user_args(init_ar
 vocoder::~vocoder() {
     delete [] inbuff;
     delete [] outbuff;
-    delete [] window;
+    delete [] window_hann;
+    delete [] window_tri;
     delete [] prev_phase;
     delete [] prev_synth_phase;
     sf_close(input_fh);
@@ -48,9 +49,10 @@ vocoder::status vocoder::vocoder_init() {
     ifft = fftw_plan_dft_1d(frame_size, reinterpret_cast<fftw_complex*>(fftw_output),
                          reinterpret_cast<fftw_complex*>(fftw_input), FFTW_BACKWARD, FFTW_MEASURE);
 
-    window = new dtype[frame_size];
-    // compute_hann_win(hann_win, frame_size, analysis_hop_size);
-    compute_tri_win(window, frame_size);
+    window_hann = new dtype[frame_size];
+    window_tri = new dtype[frame_size];
+    compute_hann_win(window_hann, frame_size, analysis_hop_size);
+    compute_tri_win(window_tri, frame_size);
 
     if (user_args.sel_effect != ROBOT) {
         synthesis_hop_size = analysis_hop_size * user_args.mod_factor.first / user_args.mod_factor.second;
@@ -66,13 +68,12 @@ vocoder::status vocoder::analysis() {
     // Left-shift input buffer to load 'analysis_hop_size' new samples
     std::copy(inbuff + analysis_hop_size, inbuff + frame_size, inbuff);
     status ret_status = read_samples(inbuff, frame_size - analysis_hop_size, analysis_hop_size);
-    for (int i = 0; i < frame_size; ++i) {
-        // inbuff[i] *= hann_win[i];
-        // This windowing seems to be detrimental to result. 
-        //Makes it super phasey sounding.
-    }
-    // Copy windowed input buffer to fft input
+    // Copy input buffer to fft input
     std::copy_n(inbuff, frame_size, fftw_input);
+    // Apply window function to fft input
+    for (int i = 0; i < frame_size; ++i) {
+        fftw_input[i].real(fftw_input[i].real() * window_hann[i]);
+    }
     fftw_execute(fft);
     for (int i = 0; i < frame_size; ++i) {
         fftw_output[i] = complex(abs(fftw_output[i]), arg(fftw_output[i]));
@@ -122,7 +123,7 @@ vocoder::status vocoder::resynthesis() {
     }
     fftw_execute(ifft);
     for (int i = 0; i < frame_size; ++i) {
-        outbuff[outbuff_offset + i] += fftw_input[i].real() * window[i] / frame_size;
+        outbuff[outbuff_offset + i] += window_tri[i] * fftw_input[i].real() / frame_size;
     }
     outbuff_offset += synthesis_hop_size;
     if (outbuff_offset >= frame_size) {

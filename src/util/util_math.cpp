@@ -20,6 +20,6 @@ void compute_hann_win(double *window_buffer, int win_size, int an_hop_size) {
 void compute_tri_win(double *window_buffer, int win_size) {
     const double c = (double) win_size / 2;
     for (int i = 0; i < win_size; ++i) {
-        window_buffer[i] = .75 - std::abs((i - c) / (c));
+        window_buffer[i] = 1 - std::abs((i - c) / (c));
     }
 }
