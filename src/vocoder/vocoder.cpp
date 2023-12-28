@@ -4,8 +4,6 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
-#define _USE_MATH_DEFINES
-#include <math.h>
 #include "fftw3.h"
 #include "sndfile.h"
 #include "vocoder.hpp"
@@ -21,7 +19,6 @@ vocoder::~vocoder() {
     delete [] inbuff;
     delete [] outbuff;
     delete [] window_hann;
-    delete [] window_tri;
     delete [] prev_phase;
     delete [] prev_synth_phase;
     sf_close(input_fh);
@@ -35,14 +32,14 @@ vocoder::~vocoder() {
 vocoder::status vocoder::vocoder_init() {
     input_fh  = sf_open(user_args.input_filename.c_str(), SFM_READ, &file_data);
     output_fh = sf_open(user_args.output_filename.c_str(), SFM_WRITE, &file_data);
-    if (input_fh == NULL) {
+    if (input_fh == NULL || output_fh == NULL) {
         return status::FILE_READ_FAIL;
     }
     inbuff   = new dtype[frame_size]();
     outbuff  = new dtype[outbuff_size]();
     prev_phase = new dtype[frame_size]();
     prev_synth_phase = new dtype[frame_size]();
-    
+    // FFTW Initializations
     fftw_input = (complex*) fftw_malloc(sizeof(fftw_complex) * frame_size);
     fftw_output = (complex*) fftw_malloc(sizeof(fftw_complex) * frame_size);
     fft = fftw_plan_dft_1d(frame_size, reinterpret_cast<fftw_complex*>(fftw_input),
@@ -51,18 +48,12 @@ vocoder::status vocoder::vocoder_init() {
                          reinterpret_cast<fftw_complex*>(fftw_input), FFTW_BACKWARD, FFTW_MEASURE);
 
     window_hann = new dtype[frame_size];
-    window_tri = new dtype[frame_size];
     compute_hann_win(window_hann, frame_size, analysis_hop_size);
-    compute_tri_win(window_tri, frame_size);
-
     if (user_args.sel_effect != ROBOT) {
         synthesis_hop_size = analysis_hop_size * user_args.mod_factor.first / user_args.mod_factor.second;
         std::cout << "Synthesis Hopsize: " << synthesis_hop_size << '\n';
     }
-
-    // Populate previous frame's phase    
     read_samples(inbuff, 0, frame_size);
-
     return status::SUCCESS;
 }
 
@@ -72,7 +63,6 @@ vocoder::status vocoder::analysis() {
     status ret_status = read_samples(inbuff, frame_size - analysis_hop_size, analysis_hop_size);
     // Copy input buffer to fft input
     std::copy_n(inbuff, frame_size, fftw_input);
-    // Apply window function to fft input
     for (int i = 0; i < frame_size; ++i) {
         fftw_input[i].real(fftw_input[i].real() * window_hann[i]);
     }
@@ -102,20 +92,20 @@ vocoder::status vocoder::modify_phase_t() {
     // Wrapped phase advance
     for (int i = 0; i < frame_size; ++i) {
         phase_inc[i] = fftw_output[i].imag() - prev_phase[i] - phase_adv[i];
-        wrapped[i] = phase_inc[i] - 2 * M_PI * std::floor((phase_inc[i] + M_PI) / (2 * M_PI));
-        // Record unmodified phase for next iteration
+        wrapped[i] = phase_inc[i] - 2 * std::numbers::pi * 
+                        std::floor((phase_inc[i] + std::numbers::pi) / (2 * std::numbers::pi));
         prev_phase[i] = fftw_output[i].imag();
     }
     // Instantaneous frequency
     for (int i = 0; i < frame_size; ++i) {
         inst_freqs[i] = bin_freqs[i] + wrapped[i] / analysis_hop_size;
     }
+    // Phase propagation and synthesis
     for (int i = 0; i < frame_size; ++i) {
         phase_prop[i] = prev_synth_phase[i] + synthesis_hop_size * inst_freqs[i];
         fftw_output[i].imag(phase_prop[i]);
         prev_synth_phase[i] = phase_prop[i];
     }
-    // Write previous buffers for next computation
     return status::SUCCESS;
 }
 
@@ -137,14 +127,6 @@ vocoder::status vocoder::resynthesis() {
             outbuff[i] = 0;
         }
         outbuff_offset -= frame_size;
-    }
-    return status::SUCCESS;
-}
-
-vocoder::status vocoder::read_samples(float *buffer, int buff_offset) {
-    sf_count_t samples_read = sf_read_float(input_fh, buffer + buff_offset, frame_size);
-    if (samples_read < frame_size) {
-        return status::BUFFER_NOT_FULL;
     }
     return status::SUCCESS;
 }

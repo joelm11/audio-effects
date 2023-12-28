@@ -56,10 +56,6 @@ util::status_codes util::parse_args(const int argc, char *argv[], voc_args &varg
         vargs.output_filename = vargs.input_filename;
         vargs.output_filename = vargs.output_filename.insert(pos, "_out");
     }
-
-    // printf("Input filename: %s\nOutput filename: %s\nEffect: %d\nMod Factor: %d/%d\n",
-    //         vargs.input_filename.c_str(), vargs.output_filename.c_str(), vargs.sel_effect, 
-    //         vargs.mod_factor.first, vargs.mod_factor.second);
     return status_codes::SUCCESS;
 }
 
