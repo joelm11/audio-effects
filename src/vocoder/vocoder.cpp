@@ -82,8 +82,7 @@ vocoder::status vocoder::modify_phase_r() {
 
 vocoder::status vocoder::modify_phase_t() {
     dtype bin_freqs[frame_size]; dtype phase_adv[frame_size];
-    dtype phase_inc[frame_size]; dtype wrapped[frame_size];
-    dtype inst_freqs[frame_size]; dtype phase_prop[frame_size];
+    dtype inter_result[frame_size];
     // Constants
     for (int i = 0; i < frame_size; ++i) {
         bin_freqs[i] = 2 * std::numbers::pi * i / frame_size;
@@ -91,20 +90,20 @@ vocoder::status vocoder::modify_phase_t() {
     }
     // Wrapped phase advance
     for (int i = 0; i < frame_size; ++i) {
-        phase_inc[i] = fftw_output[i].imag() - prev_phase[i] - phase_adv[i];
-        wrapped[i] = phase_inc[i] - 2 * std::numbers::pi * 
-                        std::floor((phase_inc[i] + std::numbers::pi) / (2 * std::numbers::pi));
+        inter_result[i] = fftw_output[i].imag() - prev_phase[i] - phase_adv[i];
+        inter_result[i] = inter_result[i] - 2 * std::numbers::pi * 
+                        std::floor((inter_result[i] + std::numbers::pi) / (2 * std::numbers::pi));
         prev_phase[i] = fftw_output[i].imag();
     }
     // Instantaneous frequency
     for (int i = 0; i < frame_size; ++i) {
-        inst_freqs[i] = bin_freqs[i] + wrapped[i] / analysis_hop_size;
+        inter_result[i] = bin_freqs[i] + inter_result[i] / analysis_hop_size;
     }
     // Phase propagation and synthesis
     for (int i = 0; i < frame_size; ++i) {
-        phase_prop[i] = prev_synth_phase[i] + synthesis_hop_size * inst_freqs[i];
-        fftw_output[i].imag(phase_prop[i]);
-        prev_synth_phase[i] = phase_prop[i];
+        inter_result[i] = prev_synth_phase[i] + synthesis_hop_size * inter_result[i];
+        fftw_output[i].imag(inter_result[i]);
+        prev_synth_phase[i] = inter_result[i];
     }
     return status::SUCCESS;
 }
