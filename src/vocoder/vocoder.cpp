@@ -103,7 +103,6 @@ vocoder::status vocoder::modify_phase_t() {
     for (int i = 0; i < frame_size; ++i) {
         phase_inc[i] = fftw_output[i].imag() - prev_phase[i] - phase_adv[i];
         wrapped[i] = phase_inc[i] - 2 * M_PI * std::floor((phase_inc[i] + M_PI) / (2 * M_PI));
-        // wrapped[i] = std::fmod(phase_inc[i], std::numbers::pi);
         // Record unmodified phase for next iteration
         prev_phase[i] = fftw_output[i].imag();
     }
@@ -126,17 +125,17 @@ vocoder::status vocoder::resynthesis() {
     }
     fftw_execute(ifft);
     for (int i = 0; i < frame_size; ++i) {
-        outbuff[outbuff_offset + i] += window_hann[i] * fftw_input[i].real() / frame_size;
+        outbuff[outbuff_offset + i] += fftw_input[i].real() * window_hann[i] / frame_size;
     }
     outbuff_offset += synthesis_hop_size;
     if (outbuff_offset >= frame_size) {
         sf_write_double(output_fh, outbuff, frame_size);
         // Copy data backwards in buffer
-        std::copy(outbuff + outbuff_offset, outbuff + outbuff_size, outbuff);
+        std::copy(outbuff + frame_size, outbuff + outbuff_size, outbuff);
         // Empty old portion of buffer
         for (int i = outbuff_offset; i < outbuff_size; ++i) {
             outbuff[i] = 0;
-        } 
+        }
         outbuff_offset -= frame_size;
     }
     return status::SUCCESS;
