@@ -62,8 +62,8 @@ class vocoder {
         // Prior information needed for vocoder:
         // 1. Previous frame's phase
         // 2. Previous frame's modified phase
-        complex *prev_phase;
-        complex *prev_synth_phase;
+        dtype *prev_phase;
+        dtype *prev_synth_phase;
         // Buffers needed for FFTW
         complex *fftw_input;
         complex *fftw_output;
