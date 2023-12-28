@@ -100,7 +100,7 @@ vocoder::status vocoder::modify_phase_t() {
     // Wrapped phase advance
     for (int i = 0; i < frame_size; ++i) {
         phase_inc[i] = fftw_output[i].imag() - prev_phase[i].imag() - phase_adv[i];
-        phase_inc[i] = phase_inc[i] - 2 * M_PI * std::floor((phase_inc[i] + M_PI) / 2 * M_PI);
+        phase_inc[i] = phase_inc[i] - 2 * M_PI * std::floor((phase_inc[i] + M_PI) / (2 * M_PI));
         // Record unmodified phase for next iteration
         prev_phase[i] = fftw_output[i].imag();
     }
@@ -123,7 +123,7 @@ vocoder::status vocoder::resynthesis() {
     }
     fftw_execute(ifft);
     for (int i = 0; i < frame_size; ++i) {
-        outbuff[outbuff_offset + i] += window_tri[i] * fftw_input[i].real() / frame_size;
+        outbuff[outbuff_offset + i] += window_hann[i] * fftw_input[i].real() / frame_size;
     }
     outbuff_offset += synthesis_hop_size;
     if (outbuff_offset >= frame_size) {
