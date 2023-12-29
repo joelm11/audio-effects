@@ -48,7 +48,7 @@ vocoder::status vocoder::vocoder_init() {
                          reinterpret_cast<fftw_complex*>(fftw_input), FFTW_BACKWARD, FFTW_MEASURE);
 
     window_hann = new dtype[frame_size];
-    compute_hann_win(window_hann, frame_size, analysis_hop_size);
+    math::compute_hann_win(window_hann, frame_size, analysis_hop_size);
     if (user_args.sel_effect != ROBOT) {
         synthesis_hop_size = analysis_hop_size * user_args.mod_factor.first / user_args.mod_factor.second;
         std::cout << "Synthesis Hopsize: " << synthesis_hop_size << '\n';
