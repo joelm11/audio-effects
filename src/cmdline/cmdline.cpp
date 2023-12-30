@@ -51,10 +51,15 @@ util::status_codes util::parse_args(const int argc, char *argv[], voc_args &varg
             }
         }
     }
-    if (vargs.output_filename == "") {
+    if (vargs.output_filename == "" && vargs.sel_effect == TIME_STRETCH) {
         auto pos = vargs.input_filename.find(".");
         vargs.output_filename = vargs.input_filename;
-        vargs.output_filename = vargs.output_filename.insert(pos, "_out");
+        vargs.output_filename = vargs.output_filename.insert(pos, "_tsm");
+    }
+    else if (vargs.output_filename == "" && vargs.sel_effect == PITCH_SHIFT) {
+        auto pos = vargs.input_filename.find(".");
+        vargs.output_filename = vargs.input_filename;
+        vargs.output_filename = vargs.output_filename.insert(pos, "_pitched");
     }
     return status_codes::SUCCESS;
 }
