@@ -1,12 +1,17 @@
 # Build files
 /build
 /.cache
+/CmakeFiles
 
 # VSCode
 .vscode
 
 # Misc.
 *.txt
-*_out.wav
+!CMakeLists.txt
 buildhelp.txt
 todo.txt
+
+# Audio Files
+*_out.wav
+*_pitched.wav

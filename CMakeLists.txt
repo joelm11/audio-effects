@@ -1,20 +1,19 @@
 cmake_minimum_required(VERSION 3.23.2)
 
 project(audio-effects)
-set(CXX_STANDARD_REQUIRED CXX_STANDARD 20)
-set(CMAKE_BUILD_TYPE Debug)
-add_compile_options(--std=c++20)
-set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 add_executable(effects_app src/main.cpp)
 
+set_property(TARGET effects_app PROPERTY CXX_STANDARD 20)
+set(CMAKE_BUILD_TYPE Debug)
+set(PROJECT_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src")
+set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+add_compile_options(--std=c++20)
+
 # Utility
-add_library(utils STATIC src/util/util_math.hpp src/util/util_math.cpp)
-target_include_directories(utils PUBLIC "src/util/")
+add_subdirectory(${PROJECT_SOURCE_DIR}/util)
 
 # Cmdline
-add_library(cmdline STATIC src/cmdline/cmdline.hpp src/cmdline/cmdline.cpp)
-target_include_directories(cmdline PUBLIC "src/vocoder" "src/util")
-target_link_libraries(cmdline utils)
+add_subdirectory(${PROJECT_SOURCE_DIR}/cmdline)
 
 # Libsndfile
 find_package(PkgConfig REQUIRED)
@@ -25,14 +24,16 @@ pkg_check_modules(SNDFILE REQUIRED IMPORTED_TARGET sndfile)
 pkg_check_modules(FFTW3 REQUIRED IMPORTED_TARGET fftw3)
 
 # Vocoder
-add_library(vocoder STATIC src/vocoder/vocoder.hpp src/vocoder/vocoder.cpp)
-target_include_directories(vocoder PUBLIC "src/util" ${SNDFILE_INCLUDE_DIRS} ${FFTW3_INCLUDE_DIRS})
-target_link_libraries(vocoder PUBLIC PkgConfig::SNDFILE PkgConfig::FFTW3 utils)
+add_subdirectory(${PROJECT_SOURCE_DIR}/vocoder)
 
 # Resample
-add_library(resample STATIC src/resample/resample.hpp src/resample/resample.cpp)
-target_link_libraries(resample PUBLIC PkgConfig::SNDFILE)
-target_include_directories(resample PUBLIC "src/util" ${SNDFILE_INCLUDE_DIRS})
+add_subdirectory(${PROJECT_SOURCE_DIR}/resample)
 
-target_link_libraries(effects_app PUBLIC cmdline vocoder resample)
-target_include_directories(effects_app PUBLIC "src/util")
+target_link_libraries(effects_app PUBLIC 
+    util    
+    cmdline 
+    vocoder 
+    resample 
+    PkgConfig::SNDFILE
+    PkgConfig::FFTW3    
+)
