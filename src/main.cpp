@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (pvc.user_args.sel_effect == PITCH_SHIFT) {
-        resampler<double, 13, 256> rsmp;
+        resampler<double, 13, 512> rsmp;
         rsmp.resampler_init(pvc.user_args.output_filename, "samples/testPS.wav", 1024);
         int fs_new = pvc.file_data.samplerate * (static_cast<double>(pvc.user_args.mod_factor.second) 
             / pvc.user_args.mod_factor.first
