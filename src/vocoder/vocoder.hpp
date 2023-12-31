@@ -16,7 +16,9 @@ class vocoder {
         using pair   = std::pair<int, int>;
         using complex = std::complex<dtype>;
 
+        const int frame_size = 1024;
         voc_args user_args;
+        SF_INFO file_data;
 
         vocoder () = delete;
 
@@ -42,7 +44,8 @@ class vocoder {
         /* Phase vocoder resynthesis phase */
         /* Take the IFFT of the modified frame, overlap add to output buff */
         status resynthesis();
-
+    
+    private:
         /* Read samples to input buffer */
         status read_samples(float *buffer, int buff_offset);
 
@@ -50,11 +53,9 @@ class vocoder {
         status read_samples(double *buffer, int buff_offset, int num_samples);
 
     private:
-        SF_INFO file_data;
         SNDFILE *input_fh;
         SNDFILE *output_fh;
         // Buffers
-        const int frame_size = 1024;
         const int outbuff_size = 3 * frame_size;
         int outbuff_offset = 0;
         dtype *inbuff;

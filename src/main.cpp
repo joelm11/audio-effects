@@ -4,6 +4,7 @@
 #include "cmdline/cmdline.hpp"
 #include "vocoder/vocoder.hpp"
 #include "vocoder_types.hpp"
+#include "resample/resample.hpp"
 
 using status  = util::status_codes;
 
@@ -32,6 +33,15 @@ int main(int argc, char *argv[]) {
             pvc.modify_phase_t();
         }
         pvc.resynthesis();
+    }
+
+    if (pvc.user_args.sel_effect == PITCH_SHIFT) {
+        resampler<double, 13, 256> rsmp;
+        rsmp.resampler_init(pvc.user_args.output_filename, "samples/testPS.wav", 1024);
+        int fs_new = pvc.file_data.samplerate * (static_cast<double>(pvc.user_args.mod_factor.second) 
+            / pvc.user_args.mod_factor.first
+        );
+        rsmp.resample(pvc.file_data.samplerate, fs_new);
     }
 
     return EXIT_SUCCESS;

@@ -31,7 +31,8 @@ target_link_libraries(vocoder PUBLIC PkgConfig::SNDFILE PkgConfig::FFTW3 utils)
 
 # Resample
 add_library(resample STATIC src/resample/resample.hpp src/resample/resample.cpp)
-target_include_directories(resample PUBLIC "src/util")
+target_link_libraries(resample PUBLIC PkgConfig::SNDFILE)
+target_include_directories(resample PUBLIC "src/util" ${SNDFILE_INCLUDE_DIRS})
 
-target_link_libraries(effects_app PUBLIC cmdline vocoder)
+target_link_libraries(effects_app PUBLIC cmdline vocoder resample)
 target_include_directories(effects_app PUBLIC "src/util")

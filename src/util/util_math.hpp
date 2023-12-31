@@ -9,6 +9,6 @@ namespace math {
 
     template <typename T>
     constexpr T sinc(T x) {
-        return std::sin(std::numbers::pi * x) / (std::numbers::pi * x);
+        return x == 0 ? 1 : std::sin(std::numbers::pi * x) / (std::numbers::pi * x);
     }
 }
