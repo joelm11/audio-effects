@@ -4,7 +4,7 @@ project(audio-effects)
 add_executable(effects_app src/main.cpp)
 
 set_property(TARGET effects_app PROPERTY CXX_STANDARD 20)
-add_compile_options(--std=c++20) # For some reason the above line doesn't do this...
+add_compile_options(--std=c++20) # For some reason the above line doesn't do this... Must be set for all files?
 set(PROJECT_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src")
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 

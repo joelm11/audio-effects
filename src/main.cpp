@@ -3,7 +3,7 @@
 #include "status_codes.hpp"
 #include "cmdline/cmdline.hpp"
 #include "vocoder/vocoder.hpp"
-#include "vocoder_types.hpp"
+#include "vocoder/vocoder_types.hpp"
 #include "resample/resample.hpp"
 
 using status  = util::status_codes;
