@@ -2,6 +2,7 @@
 #include <sndfile.h>
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <iostream>
 #include <string>
 #include "sndfile.h"
@@ -47,7 +48,7 @@ class resampler {
             }
             frame_size = samples_per_frame;
             inbuff  = new dtype[frame_size * 2];
-            if (sf_read_double(input_fh, inbuff, frame_size * 2) == 0) {
+            if (sf_read_double(input_fh, inbuff + frame_size, frame_size) == 0) {
                 return status::FILE_READ_FAIL;
             }
             outbuff = new dtype[frame_size];
@@ -57,7 +58,6 @@ class resampler {
         /* Resample file */
         void resample (int fs_orig, int fs_new) {
             dtype rs_ratio = static_cast<dtype>(fs_new) / fs_orig;
-            std::cout << "RS_RATIO: " << rs_ratio << '\n';
             int n = 0, offset, outbuff_idx = 0; 
             dtype frac, interp_factor, t = 0;
             while (resampler_fill_shift_buff() == status::BUFFER_FULL) {
@@ -132,11 +132,10 @@ class resampler {
         dtype  dinterp_lpf[n_zc * n_per_zc + 1];
         dtype  time_register;
 
-        dtype *inbuff;
-        dtype *outbuff;
+        dtype *inbuff  = nullptr;
+        dtype *outbuff = nullptr;
 
         int frame_size = 1024;
-        int fs_2 = frame_size / 2;
 
         SF_INFO file_data;
         SNDFILE *input_fh;
