@@ -46,8 +46,8 @@ class resampler {
                 return status::FILE_READ_FAIL;
             }
             frame_size = samples_per_frame;
-            inbuff  = new dtype[frame_size];
-            if (sf_read_double(input_fh, inbuff, frame_size) == 0) {
+            inbuff  = new dtype[frame_size * 2];
+            if (sf_read_double(input_fh, inbuff, frame_size * 2) == 0) {
                 return status::FILE_READ_FAIL;
             }
             outbuff = new dtype[frame_size];
@@ -106,7 +106,7 @@ class resampler {
         dtype compute_filter_response_rhs (int n, int init_offset, dtype interp_factor, int outbuff_idx) {
             dtype filter_response_sum = 0.0;
             dtype sample;
-            int i_max = std::min(frame_size - n - 1, (lpf_size - init_offset) / n_per_zc);
+            int i_max = std::min(2 * frame_size - n - 1, (lpf_size - init_offset) / n_per_zc);
             for (int i = 0; i < i_max; ++i) {
                 filter_response_sum += inbuff[n + 1 + i] * (interp_lpf[init_offset + i * n_per_zc]
                     + interp_factor * dinterp_lpf[init_offset + i * n_per_zc]
@@ -116,7 +116,8 @@ class resampler {
         }
 
         status resampler_fill_shift_buff () {
-            auto count = sf_read_double(input_fh, inbuff, frame_size);
+            std::copy(inbuff + frame_size, inbuff + 2 * frame_size, inbuff);
+            auto count = sf_read_double(input_fh, inbuff + frame_size, frame_size);
             return count < frame_size ? status::BUFFER_NOT_FULL : status::BUFFER_FULL;
         }
 
