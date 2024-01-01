@@ -26,8 +26,8 @@ pkg_check_modules(SNDFILE REQUIRED IMPORTED_TARGET sndfile)
 # FFTW
 pkg_check_modules(FFTW3 REQUIRED IMPORTED_TARGET fftw3)
 
-# Utility
-add_subdirectory(${PROJECT_SOURCE_DIR}/util)
+# Math
+add_subdirectory(${PROJECT_SOURCE_DIR}/math)
 
 # Cmdline
 add_subdirectory(${PROJECT_SOURCE_DIR}/cmdline)
@@ -39,7 +39,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/vocoder)
 add_subdirectory(${PROJECT_SOURCE_DIR}/resample)
 
 target_link_libraries(effects_app PUBLIC 
-    util    
+    Math    
     cmdline 
     vocoder 
     resample 
