@@ -1,2 +1,6 @@
 # audio-effects
-C++ Implementation of Vocoder-based Effects
+A C++ implementation of phase vocoder-based vocal audio effects
+
+# Requirements:
+- Libsndfile
+- FFTW3
