@@ -56,22 +56,18 @@ class vocoder {
         SNDFILE *input_fh;
         SNDFILE *output_fh;
         // Buffers
-        const int outbuff_size = 3 * frame_size;
-        int outbuff_offset = 0;
         dtype *inbuff;
         dtype *outbuff;
-        // Prior information needed for vocoder:
-        // 1. Previous frame's phase
-        // 2. Previous frame's modified phase
         dtype *prev_phase;
         dtype *prev_synth_phase;
+        dtype *window_hann;
         // Buffers needed for FFTW
         complex *fftw_input;
         complex *fftw_output;
         fftw_plan fft, ifft;
-        // Windows?
-        dtype *window_hann;
         // Misc.
         const int analysis_hop_size = frame_size / 4;
         int synthesis_hop_size = analysis_hop_size;
+        const int outbuff_size = 3 * frame_size;
+        int outbuff_offset = 0;
 };
