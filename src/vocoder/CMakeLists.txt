@@ -1,4 +1,4 @@
-add_library(vocoder STATIC vocoder.hpp vocoder.cpp vocoder_types.hpp)
+add_library(vocoder STATIC vocoder.hpp vocoder.cpp vocoder_types.hpp pitch.hpp)
 target_include_directories(vocoder PUBLIC
     ${PROJECT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/math

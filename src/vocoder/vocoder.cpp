@@ -22,6 +22,7 @@ vocoder::~vocoder() {
     delete [] window_hann;
     delete [] prev_phase;
     delete [] prev_synth_phase;
+    delete pitchfind;
     sf_close(input_fh);
     sf_close(output_fh);
     fftw_destroy_plan(fft);
@@ -55,6 +56,9 @@ vocoder::status vocoder::vocoder_init() {
         std::cout << "Synthesis Hopsize: " << synthesis_hop_size << '\n';
     }
     read_samples(inbuff, 0, frame_size);
+
+    pitchfind = new pitch(frame_size);
+
     return status::SUCCESS;
 }
 
@@ -62,6 +66,9 @@ vocoder::status vocoder::analysis() {
     // Left-shift input buffer to load 'analysis_hop_size' new samples
     std::copy(inbuff + analysis_hop_size, inbuff + frame_size, inbuff);
     status ret_status = read_samples(inbuff, frame_size - analysis_hop_size, analysis_hop_size);
+    // Attempt to find F0 of frame
+    int found_freq = pitchfind->find_fund_freq(inbuff, file_data.samplerate);
+    printf("Found frequency: %d\n", found_freq);
     // Copy input buffer to fft input
     std::copy_n(inbuff, frame_size, fftw_input);
     for (int i = 0; i < frame_size; ++i) {
