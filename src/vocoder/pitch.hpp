@@ -1,6 +1,7 @@
 #pragma once
 #include "fftw3.h"
 #include <complex>
+#include <cstring>
 #include <iostream>
 
 class pitch {
@@ -13,9 +14,9 @@ class pitch {
                                 reinterpret_cast<fftw_complex*>(fftw_output), FFTW_FORWARD, FFTW_MEASURE);
             ifft = fftw_plan_dft_1d(nfft, reinterpret_cast<fftw_complex*>(fftw_output),
                                 reinterpret_cast<fftw_complex*>(fftw_input), FFTW_BACKWARD, FFTW_MEASURE);
-            corrs        = new double[frame_size + 1]();
-            corrs_lagged = new double[frame_size + 1]();
-            diff         = new double[frame_size + 1]();
+            corrs        = new double[frame_size]();
+            corrs_lagged = new double[frame_size]();
+            diff         = new double[frame_size]();
         } 
     
         ~pitch () {
@@ -53,24 +54,30 @@ class pitch {
             for (int i = 1; i < frame_size; ++i) {
                 diff[i] = 2 * corrs[frame_size - 1] - corrs[i - 1] - 2 * corrs_lagged[i];
             }
+            // Re-zero FFT input buffer after use
+            for (int i = 0; i < nfft; ++i) {
+                fftw_input[i]  = 0;
+            }
         }
 
         void normalize_diff() {
             diff[0] = 1;
             double sum = diff[1];
+            // std::cout << "Normalized diffs\n";
             for (int i = 1; i < frame_size; ++i) {
                 diff[i] *= i / sum;
                 sum += diff[i + 1];
+                // printf("%0.4f\n", diff[i]);
             }            
         }
 
     public:
-        int find_fund_freq(const auto &sample_buff, int fs, int max_freq = 3500, float threshold = 0.1) {
+        int find_fund_freq(const auto &sample_buff, int fs, int max_freq = 3500, double threshold = 1.0) {
             difference(sample_buff);
             normalize_diff();
             // Find local minima below some threshold
             int max_freq_ind = fs / max_freq + 1;
-            for (int lag = 0; lag < max_freq_ind; ++lag) {
+            for (int lag = max_freq_ind; lag < frame_size; ++lag) {
                 if (diff[lag] < threshold) {
                     while (diff[lag] > diff[lag + 1]) {
                         ++lag;
@@ -78,14 +85,6 @@ class pitch {
                     return (fs / (lag + 1));
                 }
             }
-            // int min = 100, min_index = 0;
-            // for (int i = 0; i < frame_size; ++i) {
-            //     if (diff[i] < min) {
-            //         min = diff[i];
-            //         min_index = i;
-            //     }
-            // }
-            // return min_index;
             return -1;
         }
 
