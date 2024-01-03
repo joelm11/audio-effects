@@ -31,7 +31,7 @@ class pitch {
             fftw_free(fftw_output);
         }
 
-        int find_fund_freq(const auto &sample_buff, int fs, int max_freq = 3500, double threshold = 1.0) {
+        int find_fund_freq(const dtype *sample_buff, int fs, int max_freq = 3500, double threshold = 1.0) {
             difference(sample_buff);
             normalize_diff();
             // Find local minima below some threshold
@@ -48,7 +48,7 @@ class pitch {
         }
 
     private:
-        void difference(const auto& samples) {
+        void difference(const dtype *samples) {
             // Cumulative sum of squares
             dtype sum = 0;
             for (int i = 0; i < frame_size; ++i) {

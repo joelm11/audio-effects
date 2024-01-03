@@ -8,19 +8,26 @@ add_compile_options(--std=c++20) # For some reason the above line doesn't do thi
 set(PROJECT_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src")
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
+find_package(PkgConfig REQUIRED)
+list(APPEND CMAKE_MODULE_PATH "/usr/local/Cellar/") # Lazy
+
 option(DEBUG "Debug for features under development" OFF)
+option(TEST  "Build test executable" OFF)
 
 if (DEBUG)
     add_definitions(-DDEBUG)
     set(CMAKE_BUILD_TYPE Debug)
+elseif (TEST)
+    message(STATUS "Building tests")
+    include(CTest)
+    enable_testing()
+    find_package(Catch2 REQUIRED)
 else()
     set(CMAKE_BUILD_TYPE Release)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
 
 # Libsndfile
-find_package(PkgConfig REQUIRED)
-list(APPEND CMAKE_MODULE_PATH "/usr/local/Cellar/")
 pkg_check_modules(SNDFILE REQUIRED IMPORTED_TARGET sndfile)
 
 # FFTW
