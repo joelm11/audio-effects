@@ -72,5 +72,5 @@ class vocoder {
         int synthesis_hop_size = analysis_hop_size;
         const int outbuff_size = 3 * frame_size;
         int outbuff_offset = 0;
-        pitch *pitchfind;
+        pitch<dtype> *pitchfind;
 };

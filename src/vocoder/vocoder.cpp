@@ -57,7 +57,7 @@ vocoder::status vocoder::vocoder_init() {
     }
     read_samples(inbuff, 0, frame_size);
 
-    pitchfind = new pitch(frame_size);
+    pitchfind = new pitch<dtype>(frame_size);
 
     return status::SUCCESS;
 }
