@@ -1,10 +1,10 @@
 #include <cstdlib>
 #include <iostream>
 #include "status_codes.hpp"
-#include "cmdline/cmdline.hpp"
-#include "vocoder/vocoder.hpp"
-#include "vocoder/vocoder_types.hpp"
-#include "resample/resample.hpp"
+#include "cmdline.hpp"
+#include "vocoder.hpp"
+#include "vocoder_types.hpp"
+#include "resample/inc/resample.hpp"
 
 using status  = util::status_codes;
 
@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
         resampler<double, 13, 512> rsmp;
         auto pos = vargs.input_filename.find(".");
         auto pitch_fname = vargs.output_filename.insert(pos, "_pitched");
-        rsmp.resampler_init(pvc.user_args.output_filename, pitch_fname, 1024);
+        rsmp.resampler_init(pvc.user_args.output_filename, pitch_fname, pvc.frame_size);
         int fs_new = pvc.file_data.samplerate * (static_cast<double>(pvc.user_args.mod_factor.second) 
             / pvc.user_args.mod_factor.first
         );

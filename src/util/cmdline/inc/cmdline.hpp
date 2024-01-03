@@ -1,7 +1,7 @@
 #pragma once
+#include <string>
 #include "status_codes.hpp"
 #include "vocoder_types.hpp"
-#include <string>
 
 /* Utility functions for basic parsing of commandline arguments */
 namespace util {

@@ -5,12 +5,12 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
+#include <numbers>
 #include "fftw3.h"
 #include "sndfile.h"
 #include "vocoder.hpp"
 #include "vocoder_types.hpp"
 #include "util_math.hpp"
-#include <numbers>
 
 vocoder::vocoder (const voc_args &init_args) : user_args(init_args) { }
 
@@ -55,7 +55,7 @@ vocoder::status vocoder::vocoder_init() {
         synthesis_hop_size = analysis_hop_size * user_args.mod_factor.first / user_args.mod_factor.second;
         std::cout << "Synthesis Hopsize: " << synthesis_hop_size << '\n';
     }
-    return read_samples(inbuff, 0, frame_size);
+    return read_samples(inbuff, 0, frame_size) == util::status_codes::BUFFER_FULL ? status::SUCCESS : status::ERROR;
 }
 
 vocoder::status vocoder::analysis() {

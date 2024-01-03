@@ -33,23 +33,33 @@ pkg_check_modules(SNDFILE REQUIRED IMPORTED_TARGET sndfile)
 # FFTW
 pkg_check_modules(FFTW3 REQUIRED IMPORTED_TARGET fftw3)
 
-# Math
-add_subdirectory(${PROJECT_SOURCE_DIR}/math)
+# Util_Math
+add_subdirectory(${PROJECT_SOURCE_DIR}/util/math)
+set(UTIL_MATH_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/util/math/inc" CACHE STRING "Path to util_math includes")
+set(UTIL_STATUS_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/util" CACHE STRING "Path to util_math includes")
 
-# Cmdline
-add_subdirectory(${PROJECT_SOURCE_DIR}/cmdline)
+# Util_Cmdline
+add_subdirectory(${PROJECT_SOURCE_DIR}/util/cmdline)
+set(UTIL_CMDLINE_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/util/cmdline/inc" CACHE STRING "Path to cmdline includes")
 
 # Vocoder
 add_subdirectory(${PROJECT_SOURCE_DIR}/vocoder)
+set(VOCODER_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/vocoder/inc" CACHE STRING "Path to vocoder includes")
 
 # Resample
-add_subdirectory(${PROJECT_SOURCE_DIR}/resample)
+# add_subdirectory(${PROJECT_SOURCE_DIR}/resample)
+set(RESAMPLE_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/resample/inc" CACHE STRING "Path to resample includes")
+
+target_include_directories(effects_app PUBLIC 
+    ${UTIL_STATUS_INCLUDE_DIR}
+    ${RESAMPLE_INCLUDE_DIR}
+)
 
 target_link_libraries(effects_app PUBLIC 
-    Math    
+    util_math    
     cmdline 
     vocoder 
-    resample 
+    # resample  Templated header file atm
     PkgConfig::SNDFILE
     PkgConfig::FFTW3    
 )

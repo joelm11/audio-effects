@@ -1,9 +1,9 @@
-#include "util_math.hpp"
 #include <cmath>
 #include <iostream>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <numbers>
+#include "util_math.hpp"
 
 void math::compute_hann_win(double *window_buffer, int win_size, int an_hop_size) {
     const double a = 0.54, b = -0.46; 

@@ -5,9 +5,8 @@
 #include <cstddef>
 #include <iostream>
 #include <string>
-#include "sndfile.h"
 #include "status_codes.hpp"
-#include "math/util_math.hpp"
+#include "math/inc/util_math.hpp"
 
 /* Implementation of sinc interpolation presented by Julius Smith */
 template <typename T, int n_zc, int n_per_zc>

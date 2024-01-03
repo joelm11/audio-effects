@@ -1,11 +1,11 @@
-#include "cmdline.hpp"
-#include "status_codes.hpp"
-#include "vocoder_types.hpp"
 #include <cstring>
 #include <iostream>
 #include <string>
 #include <vector>
 #include <string_view>
+#include "cmdline.hpp"
+#include "status_codes.hpp"
+#include "vocoder_types.hpp"
 
 util::status_codes util::parse_args(const int argc, char *argv[], voc_args &vargs) {
     if (argc == 1) {
