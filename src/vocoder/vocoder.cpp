@@ -55,20 +55,13 @@ vocoder::status vocoder::vocoder_init() {
         synthesis_hop_size = analysis_hop_size * user_args.mod_factor.first / user_args.mod_factor.second;
         std::cout << "Synthesis Hopsize: " << synthesis_hop_size << '\n';
     }
-    read_samples(inbuff, 0, frame_size);
-
-    pitchfind = new pitch<dtype>(frame_size);
-
-    return status::SUCCESS;
+    return read_samples(inbuff, 0, frame_size);
 }
 
 vocoder::status vocoder::analysis() {
     // Left-shift input buffer to load 'analysis_hop_size' new samples
     std::copy(inbuff + analysis_hop_size, inbuff + frame_size, inbuff);
     status ret_status = read_samples(inbuff, frame_size - analysis_hop_size, analysis_hop_size);
-    // Attempt to find F0 of frame
-    int found_freq = pitchfind->find_fund_freq(inbuff, file_data.samplerate);
-    printf("Found frequency: %d\n", found_freq);
     // Copy input buffer to fft input
     std::copy_n(inbuff, frame_size, fftw_input);
     for (int i = 0; i < frame_size; ++i) {

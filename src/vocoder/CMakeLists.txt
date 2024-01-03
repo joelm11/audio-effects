@@ -17,6 +17,5 @@ if (TEST)
         PkgConfig::SNDFILE
         PkgConfig::FFTW3
     )
-
     add_test(NAME test_vocoder COMMAND test_vocoder)
 endif()
