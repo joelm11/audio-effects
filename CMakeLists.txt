@@ -36,7 +36,7 @@ pkg_check_modules(FFTW3 REQUIRED IMPORTED_TARGET fftw3)
 # Util_Math
 add_subdirectory(${PROJECT_SOURCE_DIR}/util/math)
 set(UTIL_MATH_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/util/math/inc" CACHE STRING "Path to util_math includes")
-set(UTIL_STATUS_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/util" CACHE STRING "Path to util_math includes")
+set(UTIL_STATUS_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/util" CACHE STRING "Path to error header")
 
 # Util_Cmdline
 add_subdirectory(${PROJECT_SOURCE_DIR}/util/cmdline)
@@ -46,7 +46,7 @@ set(UTIL_CMDLINE_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/util/cmdline/inc" CACHE ST
 add_subdirectory(${PROJECT_SOURCE_DIR}/vocoder)
 set(VOCODER_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/vocoder/inc" CACHE STRING "Path to vocoder includes")
 
-# Resample
+# Resample - Templated header file atm
 # add_subdirectory(${PROJECT_SOURCE_DIR}/resample)
 set(RESAMPLE_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/resample/inc" CACHE STRING "Path to resample includes")
 
