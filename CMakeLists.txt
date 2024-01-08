@@ -6,6 +6,12 @@ add_executable(effects_app src/main.cpp)
 set_property(TARGET effects_app PROPERTY CXX_STANDARD 20)
 add_compile_options(--std=c++20) # For some reason the above line doesn't do this... Must be set for all files?
 set(PROJECT_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src")
+set(UTIL_MATH_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/util/math/inc" CACHE STRING "Path to util_math includes")
+set(UTIL_STATUS_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/util" CACHE STRING "Path to error header")
+set(UTIL_CMDLINE_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/util/cmdline/inc" CACHE STRING "Path to cmdline includes")
+set(VOCODER_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/vocoder/inc" CACHE STRING "Path to vocoder includes")
+set(PITCH_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/pitch/inc" CACHE STRING "Path to pitch processing includes")
+set(RESAMPLE_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/resample/inc" CACHE STRING "Path to resample includes")
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 find_package(PkgConfig REQUIRED)
@@ -35,20 +41,15 @@ pkg_check_modules(FFTW3 REQUIRED IMPORTED_TARGET fftw3)
 
 # Util_Math
 add_subdirectory(${PROJECT_SOURCE_DIR}/util/math)
-set(UTIL_MATH_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/util/math/inc" CACHE STRING "Path to util_math includes")
-set(UTIL_STATUS_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/util" CACHE STRING "Path to error header")
 
 # Util_Cmdline
 add_subdirectory(${PROJECT_SOURCE_DIR}/util/cmdline)
-set(UTIL_CMDLINE_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/util/cmdline/inc" CACHE STRING "Path to cmdline includes")
 
 # Vocoder
 add_subdirectory(${PROJECT_SOURCE_DIR}/vocoder)
-set(VOCODER_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/vocoder/inc" CACHE STRING "Path to vocoder includes")
 
 # Resample - Templated header file atm
 # add_subdirectory(${PROJECT_SOURCE_DIR}/resample)
-set(RESAMPLE_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/resample/inc" CACHE STRING "Path to resample includes")
 
 target_include_directories(effects_app PUBLIC 
     ${UTIL_STATUS_INCLUDE_DIR}

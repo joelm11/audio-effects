@@ -7,6 +7,7 @@
 #include <cstring>
 #include <numbers>
 #include "fftw3.h"
+#include "pitch.hpp"
 #include "sndfile.h"
 #include "vocoder.hpp"
 #include "vocoder_types.hpp"
@@ -55,6 +56,9 @@ vocoder::status vocoder::vocoder_init() {
         synthesis_hop_size = analysis_hop_size * user_args.mod_factor.first / user_args.mod_factor.second;
         std::cout << "Synthesis Hopsize: " << synthesis_hop_size << '\n';
     }
+    if (user_args.sel_effect == AUTO_TUNE) {
+        pitchfind = new pitch<dtype>(frame_size);
+    }
     return read_samples(inbuff, 0, frame_size) == util::status_codes::BUFFER_FULL ? status::SUCCESS : status::ERROR;
 }
 
@@ -62,6 +66,15 @@ vocoder::status vocoder::analysis() {
     // Left-shift input buffer to load 'analysis_hop_size' new samples
     std::copy(inbuff + analysis_hop_size, inbuff + frame_size, inbuff);
     status ret_status = read_samples(inbuff, frame_size - analysis_hop_size, analysis_hop_size);
+    // Determine fundamental frequency of input frame
+    if (user_args.sel_effect == AUTO_TUNE) {
+        int freq = pitchfind->find_fund_freq(inbuff, file_data.samplerate);
+        frame_freqs.push_back(freq);
+        // Adjust synthesis hop-size
+        int closest_freq = pitchfind->find_closest_freq(freq);
+        std::cout << "Found freq: " << freq << '\t';
+        std::cout << "Closest freq: "<< closest_freq << '\n';
+    }
     // Copy input buffer to fft input
     std::copy_n(inbuff, frame_size, fftw_input);
     for (int i = 0; i < frame_size; ++i) {

@@ -1,9 +1,10 @@
-add_library(vocoder STATIC inc/vocoder.hpp inc/vocoder_types.hpp inc/pitch.hpp src/vocoder.cpp)
+add_library(vocoder STATIC inc/vocoder.hpp inc/vocoder_types.hpp src/vocoder.cpp)
 target_include_directories(vocoder PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     ${UTIL_STATUS_INCLUDE_DIR}
     ${UTIL_MATH_INCLUDE_DIR}
     ${UTIL_CMDLINE_INCLUDE_DIR}
+    ${PITCH_INCLUDE_DIR}
     ${FFTW3_INCLUDE_DIRS}
     ${SNDFILE_INCLUDE_DIRS}
 )

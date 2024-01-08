@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <string>
 #include <iostream>
+#include <vector>
 #include <fftw3.h>
 #include <sndfile.h>
 #include "status_codes.hpp"
@@ -72,5 +73,7 @@ class vocoder {
         int synthesis_hop_size = analysis_hop_size;
         const int outbuff_size = 3 * frame_size;
         int outbuff_offset = 0;
+        // Autotune
         pitch<dtype> *pitchfind;
+        std::vector<int> frame_freqs;
 };
