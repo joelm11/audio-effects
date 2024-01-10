@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <iostream>
 #include <string>
+#include <vector>
 #include "status_codes.hpp"
 #include "math/inc/util_math.hpp"
 
@@ -57,6 +58,29 @@ class resampler {
         /* Resample file */
         void resample (int fs_orig, int fs_new) {
             dtype rs_ratio = static_cast<dtype>(fs_new) / fs_orig;
+            int n = 0, offset, outbuff_idx = 0; 
+            dtype frac, interp_factor, t = 0;
+            while (resampler_fill_shift_buff() == status::BUFFER_FULL) {
+                // Resample using range of samples available in buffer
+                while (n < frame_size) {
+                    compute_vars(t, n, offset, interp_factor, true);
+                    outbuff[outbuff_idx] = compute_filter_response_lhs(n, offset, interp_factor, outbuff_idx);
+                    compute_vars(t, n, offset, interp_factor, false);
+                    outbuff[outbuff_idx++] += compute_filter_response_rhs(n, offset, interp_factor, outbuff_idx);
+                    if (outbuff_idx >= frame_size) {
+                        resampler_write_shift_buff();
+                        outbuff_idx -= frame_size;
+                    }
+                    t += 1 / rs_ratio;
+                }
+                n -= frame_size;
+                t -= frame_size;
+            }
+        }
+
+        /* Resample frames */
+        void resample_varying (const int fs_orig, const std::vector<int>& freqs) {
+            dtype rs_ratio = static_cast<dtype>(freqs[0]) / fs_orig;
             int n = 0, offset, outbuff_idx = 0; 
             dtype frac, interp_factor, t = 0;
             while (resampler_fill_shift_buff() == status::BUFFER_FULL) {
