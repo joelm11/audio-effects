@@ -19,13 +19,7 @@ class vocoder {
         using pair   = std::pair<int, int>;
         using complex = std::complex<dtype>;
 
-        const int frame_size = 1024;
-        voc_args user_args;
-        SF_INFO file_data;
-
         vocoder () = delete;
-
-        vocoder (const voc_args &init_args);
 
         vocoder (const voc_args &init_args, int frame_size);
 
@@ -55,6 +49,12 @@ class vocoder {
         /* Read samples to input buffer */
         status read_samples(double *buffer, int buff_offset, int num_samples);
 
+    public:
+        voc_args user_args;
+        int frame_size;
+        SF_INFO file_data;
+        std::vector<dtype> alphas;
+
     private:
         SNDFILE *input_fh;
         SNDFILE *output_fh;
@@ -75,5 +75,8 @@ class vocoder {
         int outbuff_offset = 0;
         // Autotune
         pitch<dtype> *pitchfind;
-        std::vector<int> frame_freqs;
+        const int mva_size = 32;
+        dtype prev_alphas[32] {1};
+        dtype mva;
+        int mva_idx = 0;
 };

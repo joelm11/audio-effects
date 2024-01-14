@@ -13,8 +13,6 @@
 #include "vocoder_types.hpp"
 #include "util_math.hpp"
 
-vocoder::vocoder (const voc_args &init_args) : user_args(init_args) { }
-
 vocoder::vocoder (const voc_args &init_args, int frame_size) : user_args(init_args), frame_size(frame_size) { }
 
 vocoder::~vocoder() {
@@ -52,9 +50,8 @@ vocoder::status vocoder::vocoder_init() {
 
     window_hann = new dtype[frame_size];
     math::compute_hann_win(window_hann, frame_size, analysis_hop_size);
-    if (user_args.sel_effect != ROBOT) {
+    if (user_args.sel_effect != ROBOT && user_args.sel_effect != AUTO_TUNE) {
         synthesis_hop_size = analysis_hop_size * user_args.mod_factor.first / user_args.mod_factor.second;
-        std::cout << "Synthesis Hopsize: " << synthesis_hop_size << '\n';
     }
     if (user_args.sel_effect == AUTO_TUNE) {
         pitchfind = new pitch<dtype>(frame_size);
@@ -68,12 +65,24 @@ vocoder::status vocoder::analysis() {
     status ret_status = read_samples(inbuff, frame_size - analysis_hop_size, analysis_hop_size);
     // Determine fundamental frequency of input frame
     if (user_args.sel_effect == AUTO_TUNE) {
-        int freq = pitchfind->find_fund_freq(inbuff, file_data.samplerate);
-        frame_freqs.push_back(freq);
-        // Adjust synthesis hop-size
-        int closest_freq = pitchfind->find_closest_freq(freq);
-        std::cout << "Found freq: " << freq << '\t';
-        std::cout << "Closest freq: "<< closest_freq << '\n';
+        int found_freq = pitchfind->find_fund_freq(inbuff, file_data.samplerate);
+        int closest_freq = pitchfind->find_closest_freq(found_freq);
+        dtype alpha;
+        // Compute moving average of alpha
+        if (found_freq < 1000) {
+            // Add to moving average
+            alpha = (dtype)found_freq / closest_freq;
+        }
+        else {
+            // Add unity to moving average
+            alpha = 1.0;
+        }
+        alphas.push_back(alpha);
+        mva += (dtype)(alpha - prev_alphas[mva_idx]) / mva_size;
+        prev_alphas[mva_idx] = alpha;
+        mva_idx = (mva_idx + 1) % mva_size;
+
+        synthesis_hop_size = analysis_hop_size * alpha;
     }
     // Copy input buffer to fft input
     std::copy_n(inbuff, frame_size, fftw_input);
