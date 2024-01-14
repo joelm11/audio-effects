@@ -10,6 +10,8 @@ using status  = util::status_codes;
 
 int main(int argc, char *argv[]) {
     
+    const int FRAME_SIZE = 1024;
+
     voc_args vargs;
 
     if (util::parse_args(argc, argv, vargs) != status::SUCCESS) {
@@ -17,7 +19,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
     
-    vocoder pvc(vargs);
+    vocoder pvc(vargs, FRAME_SIZE);
     
     if (pvc.vocoder_init() != status::SUCCESS) {
         std::cout << "Failed to initialize phase vocoder\n";
@@ -34,8 +36,8 @@ int main(int argc, char *argv[]) {
         }
         pvc.resynthesis();
     }
-
-    if (pvc.user_args.sel_effect == PITCH_SHIFT) {
+    
+    if (pvc.user_args.sel_effect == PITCH_SHIFT || pvc.user_args.sel_effect == AUTO_TUNE) {
         resampler<double, 13, 512> rsmp;
         auto pos = vargs.input_filename.find(".");
         auto pitch_fname = vargs.output_filename.insert(pos, "_pitched");
@@ -43,7 +45,12 @@ int main(int argc, char *argv[]) {
         int fs_new = pvc.file_data.samplerate * (static_cast<double>(pvc.user_args.mod_factor.second) 
             / pvc.user_args.mod_factor.first
         );
-        rsmp.resample(pvc.file_data.samplerate, fs_new);
+        if (pvc.user_args.sel_effect == PITCH_SHIFT) {
+            rsmp.resample(pvc.file_data.samplerate, fs_new);
+        }
+        else {
+            rsmp.resample_varying(pvc.file_data.samplerate, pvc.alphas);
+        }
     }
 
     return EXIT_SUCCESS;

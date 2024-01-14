@@ -62,7 +62,9 @@ util::status_codes util::parse_args(const int argc, char *argv[], voc_args &varg
         vargs.output_filename = vargs.output_filename.insert(pos, "_tsm");
     }
     // Catch unset modfactor for effects that require it
-    if (vargs.sel_effect != ROBOT && (!vargs.mod_factor.first || !vargs.mod_factor.second)) {
+    if (vargs.sel_effect != ROBOT && vargs.sel_effect != AUTO_TUNE && 
+        (!vargs.mod_factor.first || !vargs.mod_factor.second)) 
+    {
         std::cout <<  "Please specify a rational modfactor to be used with chosen effect\n";
         return status_codes::BAD_CMDL_ARGS;
     }

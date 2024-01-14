@@ -17,9 +17,6 @@ class resampler {
         using status = util::status_codes;
         using string = std::string;
         
-        const int FILTER_LEN = n_zc * n_per_zc + 1;
-        const dtype LPF_ROLLOFF = 0.945;
-        
         /* Calculate filter at construction time - to be used for arbitrary resampling rates */
         constexpr resampler () : interp_lpf(), dinterp_lpf() {
             dtype step_size = static_cast<dtype>(n_zc) / (FILTER_LEN - 1);
@@ -79,11 +76,11 @@ class resampler {
         }
 
         /* Resample frames */
-        void resample_varying (const int fs_orig, const std::vector<int>& freqs) {
-            dtype rs_ratio = static_cast<dtype>(freqs[0]) / fs_orig;
-            int n = 0, offset, outbuff_idx = 0; 
-            dtype frac, interp_factor, t = 0;
+        void resample_varying (const int fs_orig, const std::vector<dtype>& alphas) {
+            int n = 0, offset, outbuff_idx = 0, alpha_idx = 0; 
+            dtype rs_ratio, frac, interp_factor, t = 0;
             while (resampler_fill_shift_buff() == status::BUFFER_FULL) {
+                rs_ratio = alphas[alpha_idx++];
                 // Resample using range of samples available in buffer
                 while (n < frame_size) {
                     compute_vars(t, n, offset, interp_factor, true);
@@ -149,14 +146,18 @@ class resampler {
             return status::SUCCESS;
         }
 
+    public:
+        const int FILTER_LEN = n_zc * n_per_zc + 1;
+        const dtype LPF_ROLLOFF = 0.945;
+
     private:
         int    lpf_size = n_zc * n_per_zc + 1;
         dtype  interp_lpf[n_zc * n_per_zc + 1];
         dtype  dinterp_lpf[n_zc * n_per_zc + 1];
         dtype  time_register;
 
-        dtype *inbuff  = nullptr;
-        dtype *outbuff = nullptr;
+        dtype *inbuff;
+        dtype *outbuff;
 
         int frame_size = 1024;
 
