@@ -53,9 +53,7 @@ vocoder::status vocoder::vocoder_init() {
     if (user_args.sel_effect != ROBOT && user_args.sel_effect != AUTO_TUNE) {
         synthesis_hop_size = analysis_hop_size * user_args.mod_factor.first / user_args.mod_factor.second;
     }
-    if (user_args.sel_effect == AUTO_TUNE) {
-        pitchfind = new pitch<dtype>(frame_size);
-    }
+    pitchfind = new pitch<dtype>(frame_size);
     return read_samples(inbuff, 0, frame_size) == util::status_codes::BUFFER_FULL ? status::SUCCESS : status::ERROR;
 }
 
@@ -63,26 +61,8 @@ vocoder::status vocoder::analysis() {
     // Left-shift input buffer to load 'analysis_hop_size' new samples
     std::copy(inbuff + analysis_hop_size, inbuff + frame_size, inbuff);
     status ret_status = read_samples(inbuff, frame_size - analysis_hop_size, analysis_hop_size);
-    // Determine fundamental frequency of input frame
     if (user_args.sel_effect == AUTO_TUNE) {
-        int found_freq = pitchfind->find_fund_freq(inbuff, file_data.samplerate);
-        int closest_freq = pitchfind->find_closest_freq(found_freq);
-        dtype alpha;
-        // Compute moving average of alpha
-        if (found_freq < 1000) {
-            // Add to moving average
-            alpha = (dtype)found_freq / closest_freq;
-        }
-        else {
-            // Add unity to moving average
-            alpha = 1.0;
-        }
-        alphas.push_back(alpha);
-        mva += (dtype)(alpha - prev_alphas[mva_idx]) / mva_size;
-        prev_alphas[mva_idx] = alpha;
-        mva_idx = (mva_idx + 1) % mva_size;
-
-        synthesis_hop_size = analysis_hop_size * alpha;
+        autotune_analysis();
     }
     // Copy input buffer to fft input
     std::copy_n(inbuff, frame_size, fftw_input);
@@ -94,6 +74,24 @@ vocoder::status vocoder::analysis() {
         fftw_output[i] = complex(abs(fftw_output[i]), arg(fftw_output[i]));
     }
     return ret_status;
+}
+
+void vocoder::autotune_analysis() {
+        int found_freq = pitchfind->find_fund_freq(inbuff, file_data.samplerate);
+        int closest_freq = pitchfind->find_closest_freq(found_freq);
+        dtype alpha;
+        // Compute moving average of alpha
+        if (found_freq < 1000) {    // Add to moving average
+            alpha = (dtype)found_freq / closest_freq;
+        } else {                    // Add unity to moving average
+            alpha = 1.0;
+        }
+        alphas.push_back(alpha);
+        mva += (dtype)(alpha - prev_alphas[mva_idx]) / mva_size;
+        prev_alphas[mva_idx] = alpha;
+        mva_idx = (mva_idx + 1) % mva_size;
+
+        synthesis_hop_size = analysis_hop_size * alpha;
 }
 
 vocoder::status vocoder::modify_phase_r() {

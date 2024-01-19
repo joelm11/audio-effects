@@ -43,6 +43,9 @@ class vocoder {
         status resynthesis();
     
     private:
+        /* Additional analysis required for autotune feature */
+        void autotune_analysis();
+
         /* Read samples to input buffer */
         status read_samples(float *buffer, int buff_offset);
 
