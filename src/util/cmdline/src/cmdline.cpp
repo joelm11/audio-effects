@@ -43,8 +43,13 @@ util::status_codes util::parse_args(const int argc, char *argv[], voc_args &varg
                 std::string rational(*(++itr)), num, den;
                 num = rational.substr(0, rational.find("/"));
                 den = rational.substr(rational.find("/") + 1, std::string::npos);
-                vargs.mod_factor.first  = std::stoi(num);
-                vargs.mod_factor.second = std::stoi(den);
+                if (std::stoi(num) > 0 && std::stoi(den) > 0) {
+                    vargs.mod_factor.first  = std::stoi(num);
+                    vargs.mod_factor.second = std::stoi(den);
+                }
+                else {
+                    return status_codes::BAD_CMDL_ARGS;
+                }
             }
             else {
                 return status_codes::BAD_CMDL_ARGS;
@@ -66,6 +71,7 @@ util::status_codes util::parse_args(const int argc, char *argv[], voc_args &varg
         (!vargs.mod_factor.first || !vargs.mod_factor.second)) 
     {
         std::cout <<  "Please specify a rational modfactor to be used with chosen effect\n";
+        std::cout << util::help_msg;
         return status_codes::BAD_CMDL_ARGS;
     }
     return status_codes::SUCCESS;

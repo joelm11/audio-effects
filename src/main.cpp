@@ -15,14 +15,15 @@ int main(int argc, char *argv[]) {
     voc_args vargs;
 
     if (util::parse_args(argc, argv, vargs) != status::SUCCESS) {
-        std::cout << "Bad commandline arguments given\n";
+        std::cout << util::help_msg;
+        std::cout << "Bad commandline arguments given. Terminating.\n";
         return EXIT_FAILURE;
     }
     
     vocoder pvc(vargs, FRAME_SIZE);
     
     if (pvc.vocoder_init() != status::SUCCESS) {
-        std::cout << "Failed to initialize phase vocoder\n";
+        std::cout << "Failed to initialize phase vocoder. Terminating.\n";
         return EXIT_FAILURE;
     }
 

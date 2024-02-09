@@ -10,4 +10,12 @@ namespace util {
 
     /* Convert effect string to effect enum */
     voc_effect effect_as_enum(const std::string_view &effect);
+
+    /* Help / Error string */
+    const std::string help_msg ("effects_app <infile.wav> [options]\n"
+        "Options:\n"
+        "-o <outfile.wav> = Specify an output file\n"
+        "-e = Specify an effect from one of 'robot', 'tstretch', 'pitch'\n"
+        "-mf <num/den> = Modification factor as a positive rational\n"
+        );
 }
